@@ -29,7 +29,7 @@ fn unique_temp_dir(label: &str) -> PathBuf {
         .duration_since(std::time::UNIX_EPOCH)
         .map(|d| d.as_nanos())
         .unwrap_or(0);
-    let dir = env::temp_dir().join(format!("storyfab-{label}-{pid}-{ts}-{n}"));
+    let dir = env::temp_dir().join(format!("fablr-{label}-{pid}-{ts}-{n}"));
     fs::create_dir_all(&dir).expect("create temp dir");
     dir
 }

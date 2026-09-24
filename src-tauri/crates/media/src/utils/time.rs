@@ -32,7 +32,7 @@ pub fn chrono_like_timestamp() -> String {
 
 /// Current UTC time as ISO 8601 string (e.g. "2026-01-01T12:00:00.000Z").
 ///
-/// Added for the v3 domain layer (`src-tauri/src/domain`); the crate does not
+/// Added for the models layer (`crates/models`); the crate does not
 /// depend on `chrono`, so this is implemented with std only.
 pub fn now_iso8601() -> String {
     let ms = SystemTime::now()

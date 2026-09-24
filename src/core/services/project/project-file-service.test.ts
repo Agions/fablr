@@ -66,7 +66,7 @@ import {
 
 // ── Fixtures ───────────────────────────────────────────────────────────────────
 
-const validProjectId = 'story-fab-test-1234';
+const validProjectId = 'fablr-test-1234';
 const sampleProject = {
   id: validProjectId,
   name: '测试项目',

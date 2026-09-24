@@ -7,7 +7,7 @@
  *  - 用户偏好：recentProjects（userSettings）
  *  - AI 模型偏好：selectedAIModel / aiModelsSettings（由 settings-store 合并而来）
  *
- * 持久化 key：StoryFab-app
+ * 持久化 key：fablr-app（向后兼容读取 legacy: StoryFab-app）
  * 中间件：devtools + persist（createPersistedStore 封装）
  */
 

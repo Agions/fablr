@@ -187,7 +187,7 @@ const ClipRepurpose: React.FC<ClipRepurposeProps> = memo(({ onNext }) => {
     );
 
     // 动态获取导出目录
-    const exportDir = await tauri.getExportDir().catch(() => '/tmp/story-fab');
+    const exportDir = await tauri.getExportDir().catch(() => '/tmp/fablr');
 
     try {
       for (const clip of clipsToExport) {

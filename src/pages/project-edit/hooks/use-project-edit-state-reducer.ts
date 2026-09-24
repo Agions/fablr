@@ -19,7 +19,7 @@ import type { VideoMetadata } from '@/core/video';
 import type { ScriptSegment } from '@/types';
 import { genericUpdateReducer } from '@/shared/hooks/use-auto-setters';
 
-/** All page state in one shape. Fields grouped loosely by domain. */
+/** All page state in one shape. Fields grouped loosely by feature category. */
 export interface ProjectEditState {
   // Form (top-level text inputs)
   formName: string;

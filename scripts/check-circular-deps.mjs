@@ -16,7 +16,7 @@
  *
  * Stage 8 PR-3.2 引入。无需第三方依赖（不依赖 madge / dpdm）。
  *
- * @author StoryFab Refactor Stage 8
+ * @author Fablr Refactor
  */
 
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';

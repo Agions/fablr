@@ -1,7 +1,7 @@
 //! Pipeline 5 个 Tauri command 实现
 //!
 //! v3 启动时仅做：
-//! - PipelineJob 状态机推进（复用 src/core/domain/job.ts 等价 Rust 实现）
+//! - PipelineJob 状态机推进（复用 crates/models/src/job.rs 等价 Rust 实现）
 //! - 事件发送（app.emit）
 //! - 落盘到 SQLite（db::Db）
 //!
@@ -150,7 +150,7 @@ pub async fn approve_phase_impl<R: Runtime>(
         .unwrap_or_else(|| PipelineJob::new(job_id.clone()));
 
     // 1. 标记当前阶段完成（产物路径暂用 placeholder，Stage 13.1+ 接入真实执行）
-    let artifact_path = format!("/tmp/storyfab/{}/{}.json", project_id, phase_key(&phase_enum));
+    let artifact_path = format!("/tmp/fablr/{}/{}.json", project_id, phase_key(&phase_enum));
     let updated = complete_phase_state(&job, &phase_enum, Some(artifact_path));
     job = updated;
 
@@ -270,7 +270,7 @@ pub async fn run_auto<R: Runtime>(
     Ok(job_row_to_job(row))
 }
 
-// ─── 内部状态机（镜像 src-tauri/src/domain/job.ts） ────────────
+// ─── 内部状态机（镜像 crates/models/src/job.rs） ────────────
 
 fn start_phase_state(job: &PipelineJob, phase: &JobPhase) -> PipelineJob {
     if !is_phase_runnable(job, phase) {

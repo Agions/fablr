@@ -195,7 +195,7 @@ export function useExportHandlers({
     setters.exportError(null);
 
     try {
-      const outputPath = `/tmp/story-fab/export_${Date.now()}.mp4`;
+      const outputPath = `/tmp/fablr/export_${Date.now()}.mp4`;
       setters.currentExportId(outputPath);
 
       setters.progressStage('正在编码...');
@@ -247,7 +247,7 @@ export function useExportHandlers({
         const platform = PLATFORM_PRESETS.find((p) => p.value === selectedPlatforms[i]);
         if (!platform) continue;
 
-        const outputPath = `/tmp/story-fab/export_${platform.value}_${Date.now()}.mp4`;
+        const outputPath = `/tmp/fablr/export_${platform.value}_${Date.now()}.mp4`;
         setters.currentExportId(outputPath);
         setters.progressStage(
           `${platform.emoji} ${platform.label} 导出中... (${i + 1}/${selectedPlatforms.length})`,

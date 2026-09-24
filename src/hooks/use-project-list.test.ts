@@ -11,7 +11,7 @@ import { renderHook, act, waitFor } from '@testing-library/react';
 vi.mock('@/core/services/project/project-file-service', () => ({
   listProjects: vi.fn(),
   deleteProject: vi.fn(),
-  PROJECTS_CHANGED_EVENT: 'StoryFab:projects:changed',
+  PROJECTS_CHANGED_EVENT: 'Fablr:projects:changed',
 }));
 
 vi.mock('@/shared', () => ({

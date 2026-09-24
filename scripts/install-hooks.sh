@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# install-hooks.sh — 安装 StoryFab git hooks
+# install-hooks.sh — 安装 Fablr git hooks
 # 使用: bash scripts/install-hooks.sh
 
 set -e

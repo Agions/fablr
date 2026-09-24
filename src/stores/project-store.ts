@@ -1,15 +1,14 @@
 /**
  * ProjectStore — 项目元数据 / 模式 / 步骤 / 产物状态
  *
- * 承接原 storyFabStore.state 的全部字段。
+ * 管理项目核心工作流状态（WorkflowState）。
  * 视频资产（currentVideo / duration）真源，EditorStore 通过 subscribe 投影。
  *
  * 设计选择：
  *  - 保留 Fablr reducer 协议（SET_MODE / SET_STEP / ...）作为状态机核心，
  *    避免一次性重写 reducer 触发回归；复合 action（updateVideo、resetStep 等）
  *    以 action creator 形式包在 store action 上。
- *  - 持久化：当前无 persist（与原 storyFabStore 一致），项目数据由
- *    project-file-service 项目管理。
+ *  - 持久化：项目数据由 project-file-service 项目管理，按需原子写入。
  */
 import { create } from 'zustand';
 import type { VideoInfo, VideoAnalysis, ProjectData, ExportSettings } from '@/types';
@@ -36,13 +35,13 @@ const createInitialState = (): WorkflowState => ({
 });
 
 export interface ProjectStore {
-  // ── 状态机核心（沿用 storyFab 状态形）──
+  // ── 状态机核心 ──
   state: WorkflowState;
 
   // ── action creators（保留 dispatch 过渡期）──
   dispatch: (action: WorkflowAction) => void;
 
-  // ── 元数据 setter（与 storyFab 当前签名兼容）──
+  // ── 元数据 setter ──
   setMode: (mode: WorkflowMode) => void;
   setStep: (step: WorkflowStep) => void;
   setFeature: (feature: WorkflowFeatureType) => void;

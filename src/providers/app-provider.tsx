@@ -6,7 +6,7 @@ interface AppProviderProps {
 }
 
 /**
- * story-fab Design System
+ * Fablr Design System
  * Theme tokens are in globals.css CSS variables
  * Dark mode is handled via Tailwind .dark class on <html>
  */

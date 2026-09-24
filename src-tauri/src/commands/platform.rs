@@ -4,8 +4,8 @@
 //! - platform_list_presets    列出所有平台预设（数据驱动，UI 下拉用）
 //! - platform_export         一键按平台预设导出（preset → ExportVideoInput → export_video）
 //!
-//! 后端 preset 数据在 `src-tauri/src/domain/platform.rs`，
-//! 与前端 `src/core/domain/platform.ts` 镜像。
+//! 后端 preset 数据在 `src-tauri/crates/models/src/platform.rs`，
+//! 与前端 `src/core/models/platform.ts` 镜像。
 
 use serde::{Deserialize, Serialize};
 

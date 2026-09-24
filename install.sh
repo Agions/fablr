@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# ClipFlow One-Line Installer
+# Fablr One-Line Installer
 # Usage:
-#   curl -fsSL https://raw.githubusercontent.com/ClipFlow/ClipFlow/main/install.sh | bash -s -- 1.9.8
+#   curl -fsSL https://raw.githubusercontent.com/Agions/fablr/main/install.sh | bash -s -- 2.2.0
 #
 # Works on: macOS, Linux, Windows (Git Bash / WSL)
 
@@ -11,14 +11,14 @@ set -e
 VERSION="${1:-}"
 if [ -z "$VERSION" ]; then
   echo "❌ 请指定版本号，例如:"
-  echo "   curl -fsSL https://raw.githubusercontent.com/ClipFlow/ClipFlow/main/install.sh | bash -s -- 1.9.8"
+  echo "   curl -fsSL https://raw.githubusercontent.com/Agions/fablr/main/install.sh | bash -s -- 2.2.0"
   exit 1
 fi
 
-REPO="ClipFlow/ClipFlow"
-INSTALL_DIR="${HOME}/Applications/ClipFlow.app"
+REPO="Agions/fablr"
+INSTALL_DIR="${HOME}/Applications/Fablr.app"
 TMPDIR="${TMPDIR:-/tmp}"
-ARTIFACT_DIR="${TMPDIR}/cutdeck-install"
+ARTIFACT_DIR="${TMPDIR}/fablr-install"
 
 mkdir -p "$ARTIFACT_DIR"
 cd "$ARTIFACT_DIR"
@@ -40,25 +40,29 @@ download() {
 
   echo "⬇️  下载 $filename..."
   if ! curl -fLo "${ARTIFACT_DIR}/${filename}" -H "Accept: application/octet-stream" "$url"; then
-    echo "❌ 下载失败: $url"
-    exit 1
+    return 1
   fi
 }
 
 install_macos() {
-  local dmg="${ARTIFACT_DIR}/ClipFlow.dmg"
-  download "ClipFlow-macos-dmg/ClipFlow.dmg" "ClipFlow.dmg"
+  local dmg="${ARTIFACT_DIR}/Fablr.dmg"
+  download "Fablr_${VERSION}_aarch64.dmg" "Fablr.dmg" || \
+  download "Fablr_${VERSION}_x64.dmg" "Fablr.dmg" || \
+  download "Fablr.dmg" "Fablr.dmg" || {
+    echo "❌ 下载 macOS 安装包失败"
+    exit 1
+  }
 
   echo "📦 挂载 DMG..."
-  hdiutil attach "$dmg" -mountpoint /Volumes/ClipFlow -nobrowse
+  hdiutil attach "$dmg" -mountpoint /Volumes/Fablr -nobrowse
 
   echo "🧹 移除旧版..."
   rm -rf "$INSTALL_DIR"
 
   echo "📦 复制到 Applications..."
-  cp -r /Volumes/ClipFlow/ClipFlow.app "$INSTALL_DIR"
+  cp -r /Volumes/Fablr/Fablr.app "$INSTALL_DIR"
 
-  hdiutil detach /Volumes/ClipFlow
+  hdiutil detach /Volumes/Fablr
   rm -f "$dmg"
 
   echo "✅ 安装完成: ${INSTALL_DIR}"
@@ -66,40 +70,44 @@ install_macos() {
 }
 
 install_linux_appimage() {
-  local appimage="${ARTIFACT_DIR}/ClipFlow.AppImage"
-  download "ClipFlow-linux-appimage/ClipFlow.AppImage" "ClipFlow.AppImage"
+  local appimage="${ARTIFACT_DIR}/Fablr.AppImage"
+  download "Fablr_${VERSION}_amd64.AppImage" "Fablr.AppImage" || \
+  download "Fablr.AppImage" "Fablr.AppImage" || {
+    echo "❌ 下载 Linux AppImage 失败"
+    exit 1
+  }
 
   chmod +x "$appimage"
 
   BIN_DIR="${HOME}/.local/bin"
   mkdir -p "$BIN_DIR"
-  mv "$appimage" "${BIN_DIR}/ClipFlow"
+  mv "$appimage" "${BIN_DIR}/fablr"
 
-  echo "✅ 安装完成: ${BIN_DIR}/ClipFlow"
-  echo "   运行: ${BIN_DIR}/ClipFlow"
+  echo "✅ 安装完成: ${BIN_DIR}/fablr"
+  echo "   运行: ${BIN_DIR}/fablr"
 }
 
 install_linux_deb() {
-  local deb="${ARTIFACT_DIR}/cutdeck.deb"
-  DEB_FILE=$(find release -name "*.deb" 2>/dev/null | head -1)
-  if [ -z "$DEB_FILE" ]; then
-    echo "❌ 未找到 deb 包，跳过..."
-    return
-  fi
-  cp "$DEB_FILE" "$deb"
+  local deb="${ARTIFACT_DIR}/fablr.deb"
+  download "fablr_${VERSION}_amd64.deb" "fablr.deb" || \
+  download "fablr.deb" "fablr.deb" || {
+    echo "❌ 下载 Linux deb 包失败"
+    exit 1
+  }
   sudo dpkg -i "$deb" || sudo apt-get -f install -y
   rm -f "$deb"
   echo "✅ 安装完成"
 }
 
 install_windows() {
-  local exe=$(find release -name "*.exe" 2>/dev/null | head -1)
-  if [ -z "$exe" ]; then
-    echo "❌ 未找到 exe 安装包，跳过..."
-    return
-  fi
+  local exe="${ARTIFACT_DIR}/Fablr-setup.exe"
+  download "Fablr_${VERSION}_x64-setup.exe" "Fablr-setup.exe" || \
+  download "Fablr-setup.exe" "Fablr-setup.exe" || {
+    echo "❌ 下载 Windows 安装包失败"
+    exit 1
+  }
   echo "📦 运行安装程序: $exe"
-  powershell -Command "Start-Process msiexec.exe -Wait -ArgumentList '/i', '$exe'"
+  powershell -Command "Start-Process -FilePath '$exe' -Wait"
   echo "✅ 安装完成"
 }
 
@@ -112,10 +120,10 @@ main() {
   case "$os" in
     macos)  install_macos ;;
     linux)
-      if curl -sfI "https://github.com/${REPO}/releases/download/${VERSION}/ClipFlow-linux-appimage/ClipFlow.AppImage" > /dev/null 2>&1; then
-        install_linux_appimage
-      else
+      if command -v dpkg >/dev/null 2>&1; then
         install_linux_deb
+      else
+        install_linux_appimage
       fi
       ;;
     windows) install_windows ;;

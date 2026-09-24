@@ -1,4 +1,4 @@
-# Rust 原生引擎与领域驱动设计 (Rust Backend DDD)
+# Rust 原生引擎与分层架构设计 (Rust Native Backend Architecture)
 
 ## 1. Rust 架构定位与职责
 
@@ -11,21 +11,26 @@
 
 ---
 
-## 2. 领域驱动设计 (DDD) 分层模型
+## 2. 核心架构分层与 Crates 模块模型
 
 ```
-src-tauri/src/
-├── commands/             # 1. 接口表示层 (Tauri IPC Commands / DTO)
-│   ├── project.rs        #    项目持久化与查询接口
-│   ├── video.rs          #    视听解码与切片接口
-│   └── subtitle.rs       #    ASR 与字幕处理接口
-├── domain/               # 2. 核心领域层 (Domain Models & Logic)
-│   ├── production.rs     #    作品聚合根与生命周期
-│   └── intent.rs         #    创作意图与赛道配置模型
-├── db/                   # 3. 基础设施数据层 (SQLite Repository & Migrations)
-│   └── mod.rs            #    连接池与事务管理
-└── utils/                # 4. 基础设施工具 (Resilience / Limiter / AudioMix)
-    └── resilience.rs     #    全局 Panic Hook 捕获与信号量限流器
+src-tauri/
+├── crates/
+│   ├── models/           # 1. 核心模型与工作流定义 (Models & Workflows)
+│   │   ├── src/lib.rs
+│   │   ├── src/job.rs
+│   │   └── src/platform.rs
+│   ├── db/               # 2. 基础设施数据层 (SQLite Repository & Migrations)
+│   │   ├── src/lib.rs
+│   │   └── src/job.rs
+│   └── media/            # 3. 多媒体与音频处理 (Audio, Subtitles, Semaphores)
+│       └── src/utils/
+├── src/
+│   ├── commands/         # 4. 接口表示层 (Tauri IPC Commands / DTO)
+│   │   ├── project.rs    #    项目持久化与查询接口
+│   │   ├── video.rs      #    视听解码与切片接口
+│   │   └── subtitle.rs   #    ASR 与字幕处理接口
+│   └── lib.rs            #    Tauri 应用入口与路由注册
 ```
 
 ---

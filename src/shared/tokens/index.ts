@@ -1,5 +1,5 @@
 /**
- * shared/tokens — StoryFab 设计 Token 统一出口
+ * shared/tokens — Fablr 设计 Token 统一出口
  *
  * 架构定位：
  * - **真值**：CSS custom properties 定义于 `src/styles/globals.css :root`
@@ -8,10 +8,6 @@
  *
  * 注意事项：
  * - 新增 token 时同步：`globals.css` + `tailwind.config.ts` + 本目录
- * - CI 校验脚本：`scripts/check-color-tokens.ts`（PR-1.2 同期落地）
- *
- * @see docs/refactor/DESIGN.md §2
- * @see docs/refactor/STAGE-1-PR-PLAN.md §2 PR-1.2
  */
 
 export * from './color-tokens';

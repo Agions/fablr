@@ -2,7 +2,7 @@ import type { Config } from 'tailwindcss'
 import tailwindcss from '@tailwindcss/vite'
 
 /**
- * StoryFab — Cinematic Darkroom Tailwind Config
+ * Fablr — Cinematic Darkroom Tailwind Config
  *
  * Warm charcoal palette with amber/gold cinema accents.
  * All values also defined as CSS custom properties in globals.css.

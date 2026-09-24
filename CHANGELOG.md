@@ -4,7 +4,7 @@
 
 - **README.md 重写**（commit `69363cda`）：口径校准 10 LLM Provider（openai / anthropic / google / alibaba-qwen / zhipu / iflytek / deepseek / moonshot / local / custom，验证自 `src/core/config/ai-models/providers.ts`）；分离 "这是什么 / 特性 / 快速开始 / 架构 / 目录" 5 大段；文档导航拆为用户指南 / 开发文档 / 参考 3 组。
 - **8 个不规范的文档删除**（commit `edd3d715`，共 1025 行）：`REFACTORING_REPORT.md`（0609 残留,描述从未落地的 visionService 拆分）、`docs/CHANGELOG.md`（与根 CHANGELOG 重复）、`docs/dev/architecture-optimization.md`（5 个 pain point + 3 个 ADR 全部已实现,文档是"未来计划"非"实现记录"）、`docs/dev/backend.md` / `docs/dev/frontend.md`（与 architecture.md 100% 重叠）、`docs/dev/commentary-workflow.md` / `director-agent.md` / `script-generation.md`（三处讲同一 5 步 Pipeline,合并为 commentary.md）。所有 8 个文件 `rg -l <name>` 零引用,安全删除。
-- **`docs/dev/architecture.md` 重写 + `docs/dev/commentary.md` 新建**（commit `d93ae770`）：architecture.md 94 → 305 行补全 v2.2.0 真实状态（10 LLM Provider / 61 个 Tauri 命令 / 双服务层 ADR-101 / 5 步 Pipeline ADR-103 / 18 组件 useState→useReducer 状态机迁移 / 9 个路由页面 / 5 个 Zustand store / 14 个 core/services 子模块 / Rust 端 commands/ commentary 3 子目录 + render 2 子目录 / 3 个 Rust 集成测试 / CUTDECK_/STORYFAB_ 双前缀环境变量）；commentary.md 新建 286 行整合 3 文件——5 步 Pipeline 状态机、6 阶段 Director 状态机、10 Provider Prompt 模板、5 风格质量检查、5 分钟视频性能/成本表。
+- **`docs/dev/architecture.md` 重写 + `docs/dev/commentary.md` 新建**（commit `d93ae770`）：architecture.md 94 → 305 行补全 v2.2.0 真实状态（10 LLM Provider / 61 个 Tauri 命令 / 双服务层 ADR-101 / 5 步 Pipeline ADR-103 / 18 组件 useState→useReducer 状态机迁移 / 9 个路由页面 / 5 个 Zustand store / 14 个 core/services 子模块 / Rust 端 commands/ commentary 3 子目录 + render 2 子目录 / 3 个 Rust 集成测试 / FABLR_/CUTDECK_ 双前缀环境变量）；commentary.md 新建 286 行整合 3 文件——5 步 Pipeline 状态机、6 阶段 Director 状态机、10 Provider Prompt 模板、5 风格质量检查、5 分钟视频性能/成本表。
 - **`docs/.vitepress/config.ts` 同步**（commit `f5f96938`）：sidebar 删 6 个 dead link（指向已删文件），"解说工作流" 指向新 commentary.md，"系统架构" 标题同步。
 - **2 处死链修复**（commit `aa870e60`）：`src/store/README.md` + `src/services/README.md` 引用已删 `architecture-optimization.md`，重定向到 `architecture.md §双服务层 (ADR-101)`。
 - **CHANGELOG 勘误**（commit `d93ae770` 当日 tree 即如此，非 post-refactor drift）：v2.2.0 [Unreleased] L7 + 同 commit message 描述 "14 个 core/services 子模块" 应为 **13 个**（实为 ai/aiClip/asr/auth/commentary/editor/export/file/pipeline/project/providers/subtitle/video；"配置存储" 实为 `editor/storage.ts` 文件而非独立 `storage/` 子目录）。本次 audit (2026-06-29) 通过 `git show d93ae770:src/core/services/` 直接验证。历史 L7 数字按 pitfall #21 保留不修, 勘误条作为"v2.2.0 当天 tree 真相记录"。
@@ -38,7 +38,7 @@
 ### 🐛 Bug Fixes
 
 - **`AIVideoPreview.tsx` 键盘监听器重绑定**：播放/暂停时 `useEffect` deps 含 `state.isPlaying` 导致每帧重绑键盘监听器 → 改用 `isPlayingRef`，deps 从 5 缩减为 1（`[currentVideo]`）
-- **`StoryFabProvider.tsx` context value 爆炸**：所有 consumer 每次 dispatch 都重渲染 → `canProceed` 依赖精确到 `state.currentStep + state.stepStatus`
+- **`FablrProvider.tsx` context value 爆炸**：所有 consumer 每次 dispatch 都重渲染 → `canProceed` 依赖精确到 `state.currentStep + state.stepStatus`
 - **`ScriptWriting.tsx` useEffect TDZL**：`lastTimeoutIdRef` 在 cleanup 中引用但声明在其后 → 前移声明位置
 - **`smart_segmenter.rs` 空操作借用**：`let _ = energy_data` 无意义，删除
 - **`smart_segmenter.rs` 尾部窗口丢失**：能量计算循环丢弃不足 window_samples 的尾部样本 → 追加尾部窗口计算
@@ -76,7 +76,7 @@
 ## [2.0.1] - 2026-05-01
 
 - **src/constants/index.ts:** Add missing `legacy.token` and `legacy.projects` to `STORAGE_KEYS` for backward compatibility
-- **src/components/StoryFab/workspace/ScriptWriting.tsx:** Add missing `useRef` to React import; add null checks for `Timeout | null` before calling `timeout.clear()`
+- **src/components/workspace/ScriptWriting.tsx:** Add missing `useRef` to React import; add null checks for `Timeout | null` before calling `timeout.clear()`
 - **src/components/editor/Timeline/TimelinePanel.tsx:** Add `return undefined` in useEffect for non-isPlaying code path (TS7030)
 - **src/core/services/providers/base.service.ts:** Rename `delay` parameter to `delayMs` to avoid shadowing imported `delay()` function
 - **src/shared/utils/pipeline-checkpoint.ts:** Replace `new Promise(resolve => setTimeout(resolve, 1000))` with `delay(1000)`
@@ -87,7 +87,7 @@
 - **docs:** Add `docs/ARCHITECTURE.md` (depth architecture doc) and `docs/DEVELOPER_GUIDE.md` (developer guide)
 - **README:** Add AI model table (9 providers), update directory structure, fix docs navigation
 - **workflow:** Consolidate `workflow.types.ts`, `workflow.constants.ts`, `workflow.initialState.ts` → `workflow.ts` (eliminate circular imports)
-- **dead code:** Remove ScriptGenerator, MenuBar, appConfig.ts, templates/dedup/, StoryFab/modes/, and orphaned LESS/CSS files
+- **dead code:** Remove ScriptGenerator, MenuBar, appConfig.ts, templates/dedup/, and orphaned LESS/CSS files
 
 ---
 
@@ -359,7 +359,7 @@ src-tauri/src/
 - **Layout**：全新侧栏（琥珀光强调）+ 顶栏（用户信息）
 - **Dashboard**：玻璃拟态卡片 + 状态 Badge（琥珀/电青/灰）
 - **Landing**：Canvas 粒子 Hero + 3步骤流 + 4列特性网格
-- **StoryFab 工作流**：垂直步骤列表 + 四态动画（完成/进行/等待）
+- **Fablr 工作流**：垂直步骤列表 + 四态动画（完成/进行/等待）
 - **VideoUpload**：拖拽脉冲动画 + 琥珀光进度条
 - **AIAnalyze**：神经网络可视化（电青脉冲点阵）
 - **ProjectCreate / ScriptGenerate / VideoSynthesize / VideoExport**：全组件重设计
@@ -437,7 +437,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - WorkflowMonitor：移除 eslint-disable，Timeline items 添加 key
 - TimelineClip：移除未使用 Badge import，修复 handleDoubleClick 依赖
 - ai.service：移除废弃的 generateMockScenes/generateMockKeyframes
-- StoryFab.tsx / VideoExport.tsx：移除未使用 import
+- VideoExport.tsx：移除未使用 import
 
 ### 📖 文档更新
 
@@ -484,7 +484,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### 项目重命名
 
 - **旧名称**: StoryFab (126+ 同名项目，侵权风险)
-- **新名称**: StoryFab
+- **新名称**: Fablr
 - 体现"AI视频创作 + 故事叙事"的核心价值
 
 ### 📚 文档更新
@@ -594,4 +594,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## 旧版本
 
-- 查看 [GitHub Releases](https://github.com/agions/StoryFab/releases)
+- 查看 [GitHub Releases](https://github.com/agions/fablr/releases)

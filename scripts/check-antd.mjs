@@ -2,7 +2,7 @@
 /**
  * check-antd.mjs
  *
- * StoryFab 项目级约束：UI 层严禁使用 antd 及其兼容设计。
+ * Fablr 项目级约束：UI 层严禁使用 antd 及其兼容设计。
  * (出处: ADR-002, 用户明确要求)
  *
  * 此脚本扫描 src/ 中所有 .ts/.tsx/.js/.jsx 文件，检测：
@@ -89,7 +89,7 @@ for (const dir of SCAN_DIRS) {
 
 if (violations.length > 0) {
   console.error(`${RED}✗ 检测到 antd 引用 (${violations.length} 处)${RESET}`);
-  console.error(`${YELLOW}StoryFab 规定: UI 层严禁使用 antd 及其兼容设计${RESET}\n`);
+  console.error(`${YELLOW}Fablr 规定: UI 层严禁使用 antd 及其兼容设计${RESET}\n`);
   for (const v of violations) {
     console.error(`  ${v.file}:${v.line}`);
     console.error(`    ${v.snippet}\n`);

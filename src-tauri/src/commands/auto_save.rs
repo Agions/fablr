@@ -29,7 +29,7 @@ pub fn project_path(fablr_dir: &Path, project_id: &str) -> PathBuf {
 // ─── Directory resolution ─────────────────────────────────────────────────────
 
 /// Returns the fablr_dir (shared with project.rs storage).
-pub async fn get_story_fab_dir(app: &tauri::AppHandle) -> Result<PathBuf, String> {
+pub async fn get_fablr_dir(app: &tauri::AppHandle) -> Result<PathBuf, String> {
     let app_dir = app
         .path()
         .app_data_dir()
@@ -50,8 +50,8 @@ pub async fn auto_save_project(
     project_id: String,
     content: String,
 ) -> Result<(), String> {
-    let story_fab_dir = get_story_fab_dir(&app).await?;
-    let target_path = autosave_path(&story_fab_dir, &project_id);
+    let fablr_dir = get_fablr_dir(&app).await?;
+    let target_path = autosave_path(&fablr_dir, &project_id);
 
     tokio_fs::write(&target_path, &content)
         .await
@@ -67,8 +67,8 @@ pub async fn clear_autosave(
     app: tauri::AppHandle,
     project_id: String,
 ) -> Result<(), String> {
-    let story_fab_dir = get_story_fab_dir(&app).await?;
-    let autosave = autosave_path(&story_fab_dir, &project_id);
+    let fablr_dir = get_fablr_dir(&app).await?;
+    let autosave = autosave_path(&fablr_dir, &project_id);
 
     if autosave.exists() {
         tokio_fs::remove_file(&autosave)
@@ -84,10 +84,10 @@ pub async fn clear_autosave(
 pub async fn list_recoverable_projects(
     app: tauri::AppHandle,
 ) -> Result<Vec<String>, String> {
-    let story_fab_dir = get_story_fab_dir(&app).await?;
+    let fablr_dir = get_fablr_dir(&app).await?;
     let mut recoverable = Vec::new();
 
-    let mut entries = tokio_fs::read_dir(&story_fab_dir)
+    let mut entries = tokio_fs::read_dir(&fablr_dir)
         .await
         .map_err(|e| format!("读取项目目录失败: {e}"))?;
 
@@ -121,9 +121,9 @@ pub async fn recover_autosave(
     app: tauri::AppHandle,
     project_id: String,
 ) -> Result<String, String> {
-    let story_fab_dir = get_story_fab_dir(&app).await?;
-    let autosave = autosave_path(&story_fab_dir, &project_id);
-    let main_file = project_path(&story_fab_dir, &project_id);
+    let fablr_dir = get_fablr_dir(&app).await?;
+    let autosave = autosave_path(&fablr_dir, &project_id);
+    let main_file = project_path(&fablr_dir, &project_id);
 
     if !autosave.exists() {
         return Err(format!("没有找到项目 {} 的自动保存", project_id));
@@ -153,8 +153,8 @@ pub async fn preview_autosave(
     app: tauri::AppHandle,
     project_id: String,
 ) -> Result<String, String> {
-    let story_fab_dir = get_story_fab_dir(&app).await?;
-    let autosave = autosave_path(&story_fab_dir, &project_id);
+    let fablr_dir = get_fablr_dir(&app).await?;
+    let autosave = autosave_path(&fablr_dir, &project_id);
 
     if !autosave.exists() {
         return Err(format!("没有找到项目 {} 的自动保存", project_id));

@@ -13,7 +13,7 @@ use super::whisper::whisper_python_code;
 pub fn extract_audio_to_wav(video_path: &str, output_wav: &Path) -> Result<(), String> {
     let ffmpeg = resolve_binary_path("ffmpeg");
     if ffmpeg.is_empty() {
-        return Err("无法定位 ffmpeg，请设置 CUTDECK_FFMPEG_PATH 环境变量".to_string());
+        return Err("无法定位 ffmpeg，请设置 FABLR_FFMPEG_PATH 环境变量".to_string());
     }
     let output = Command::new(&ffmpeg)
         .args([

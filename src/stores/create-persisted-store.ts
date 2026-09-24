@@ -11,7 +11,7 @@
  *
  * Usage:
  *   export const useAppStore = createPersistedStore<AppState>({
- *     name: 'StoryFab-app',
+ *     name: 'fablr-app',
  *     devtoolsName: 'AppStore',
  *     storage: createJSONStorage(() => localStorage),
  *     partialize: (state) => ({ theme: state.theme }),

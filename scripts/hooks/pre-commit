@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# StoryFab pre-commit hook
+# Fablr pre-commit hook
 #
 # 安装方法 (手动):
 #   cp scripts/hooks/pre-commit .git/hooks/pre-commit
@@ -15,7 +15,7 @@ set -e
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 cd "$REPO_ROOT"
 
-echo "🛡️  StoryFab pre-commit checks..."
+echo "🛡️  Fablr pre-commit checks..."
 # 1. 校验禁用 antd
 if [ -f scripts/check-antd.mjs ]; then
   node scripts/check-antd.mjs || exit 1

@@ -4,7 +4,7 @@
  * 职责：单一职责地管理 localStorage 的存取 + 序列化。
  * 不依赖 React，可在任意上下文（store初始化、工具函数）调用。
  *
- * 持久化 key：StoryFab-feature-flags
+ * 持久化 key：fablr-feature-flags（向后兼容读取 legacy: StoryFab-feature-flags）
  * 存储格式：JSON Record<string, boolean>
  */
 

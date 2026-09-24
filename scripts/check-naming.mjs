@@ -2,7 +2,7 @@
 /**
  * check-naming.mjs
  *
- * StoryFab 前端命名规范校验脚本（阶段0 重写版）。
+ * Fablr 前端命名规范校验脚本（阶段0 重写版）。
  *
  * 扫描范围（仅前端 `src`）：
  *   1. 文件名 kebab-case        ：^[a-z][a-z0-9-]*$
@@ -288,7 +288,7 @@ function printGroup(title, items, color) {
   }
 }
 
-console.log(`${C_CYAN}StoryFab 命名规范校验（仅报告，不阻塞 CI）${C_RESET}`);
+console.log(`${C_CYAN}Fablr 命名规范校验（仅报告，不阻塞 CI）${C_RESET}`);
 console.log(`${C_GRAY}扫描根: ${SCAN_ROOT}${C_RESET}`);
 
 printGroup('① 文件命名违规（kebab-case）', fileViolations, C_YELLOW);
@@ -303,6 +303,6 @@ console.log(`  文件命名违规 : ${fileViolations.length}`);
 console.log(`  目录命名违规 : ${dirViolations.length}（其中 error 级 ${errorCount}）`);
 console.log(`  角色后缀拍平 : ${roleViolations.length}`);
 console.log(`  ${C_YELLOW}合计待整改: ${total}${C_RESET}`);
-console.log(`${C_GRAY}规范详情见 docs/NAMING_AND_MODULARIZATION.md${C_RESET}`);
+console.log(`${C_GRAY}规范详情见 docs/developer/02-testing-and-standards.md${C_RESET}`);
 
 process.exit(0);

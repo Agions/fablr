@@ -15,9 +15,11 @@ use db::{Db, TtsCacheRow};
 use models::ssml::serialize_ssml;
 use crate::utils::cmd_err;
 
-/// Resolve edge-tts path: CUTDECK_EDGE_TTS_PATH env > search PATH > "edge-tts"
+/// Resolve edge-tts path: FABLR_EDGE_TTS_PATH / CUTDECK_EDGE_TTS_PATH env > search PATH > "edge-tts"
 pub fn edge_tts_path() -> String {
-    if let Ok(path) = env::var("CUTDECK_EDGE_TTS_PATH") {
+    let env_val = env::var("FABLR_EDGE_TTS_PATH")
+        .or_else(|_| env::var("CUTDECK_EDGE_TTS_PATH"));
+    if let Ok(path) = env_val {
         if !path.trim().is_empty() {
             return path;
         }

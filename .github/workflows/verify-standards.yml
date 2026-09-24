@@ -1,6 +1,6 @@
 name: Verify Project Standards
 
-# StoryFab 项目级约束校验 — 来源 ADR-002 / ADR-006 / ADR-007
+# Fablr 项目级约束校验 — 来源 ADR-002 / ADR-006 / ADR-007
 #
 # 触发时机:
 #   - push 到 main / develop
@@ -104,7 +104,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          DESC=$(gh repo view Agions/story-fab --json description -q '.description // ""')
+          DESC=$(gh repo view Agions/fablr --json description -q '.description // ""')
           if [ -z "$DESC" ] || [ "$DESC" = "null" ]; then
             echo "❌ 仓库描述为空"
             exit 1

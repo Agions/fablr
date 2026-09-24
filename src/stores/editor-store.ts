@@ -1,14 +1,13 @@
 /**
  * EditorStore — 时间线 + 剪辑 + 播放 + 素材工作态
  *
- * 承接原 workspaceStore 全部字段 + storyFabStore 播放态（isPlaying / currentTime）。
+ * 管理时间线轨道、切片剪辑、播放控制与素材操作。
  * 视频资产（video 字段）真源在 ProjectStore；EditorStore 通过 subscribe 投影。
  *
  * 设计选择：
- *  - 时间线撤销/重做（trackHistory）保留模块级单实例（与原行为兼容）。
- *  - 持久化 key 沿用原 `StoryFab-workspace`（避免用户丢失已缓存的设置）。
- *  - 播放态采用单一 `isPlaying` 命名，原 storyFabStore.isPlaying 与
- *    workspaceStore.previewPlaying 统一收口于此。
+ *  - 时间线撤销/重做（trackHistory）保留模块级单实例。
+ *  - 持久化 key: `fablr-workspace`（向后兼容读取 legacy `StoryFab-workspace`）。
+ *  - 播放态采用单一 `isPlaying` 命名，统一收口播放与预览状态。
  */
 import { createPersistedStore } from './create-persisted-store';
 import { createJSONStorage } from 'zustand/middleware';

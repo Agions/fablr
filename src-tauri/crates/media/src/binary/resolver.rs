@@ -7,15 +7,19 @@ pub fn resolve_binary_path(binary_name: &str) -> String {
     if binary_name.is_empty() {
         return binary_name.to_string();
     }
-    let env_key = format!("CUTDECK_{}_PATH", binary_name.to_uppercase());
-    if let Ok(path) = std::env::var(&env_key) {
+    let fablr_env = format!("FABLR_{}_PATH", binary_name.to_uppercase());
+    let cutdeck_env = format!("CUTDECK_{}_PATH", binary_name.to_uppercase());
+    let path_val = std::env::var(&fablr_env).or_else(|_| std::env::var(&cutdeck_env));
+    if let Ok(path) = path_val {
         if !path.trim().is_empty() && Path::new(&path).exists() {
             return path;
         }
     }
 
     if binary_name == "ffprobe" {
-        if let Ok(ffmpeg_path) = std::env::var("CUTDECK_FFMPEG_PATH") {
+        let ffmpeg_env = std::env::var("FABLR_FFMPEG_PATH")
+            .or_else(|_| std::env::var("CUTDECK_FFMPEG_PATH"));
+        if let Ok(ffmpeg_path) = ffmpeg_env {
             let ffmpeg = PathBuf::from(ffmpeg_path);
             if let Some(parent) = ffmpeg.parent() {
                 let probe = parent.join("ffprobe");

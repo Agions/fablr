@@ -8,7 +8,9 @@ use tokio::sync::{Semaphore, SemaphorePermit};
 /// Permits granted to a single process. Defaults to `cpus-1`, clamped to
 /// `[1, 8]`.
 fn default_permits() -> usize {
-    if let Ok(raw) = std::env::var("STORYFAB_RESOURCE_PERMITS") {
+    let env_val = std::env::var("FABLR_RESOURCE_PERMITS")
+        .or_else(|_| std::env::var("STORYFAB_RESOURCE_PERMITS"));
+    if let Ok(raw) = env_val {
         if let Ok(n) = raw.parse::<usize>() {
             if n > 0 {
                 return n.clamp(1, 32);
