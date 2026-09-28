@@ -67,6 +67,7 @@ export type PipelineJobDto = {
 export type TauriCommandName =
   | 'check_ffmpeg'
   | 'analyze_video'
+  | 'extract_key_frames'
   | 'get_export_dir'
   | 'run_ffprobe'
   | 'detect_highlights'
@@ -142,6 +143,10 @@ export type TauriCommandName =
 type CommandNameToDefs = {
   check_ffmpeg: { input: Record<string, never>; output: { installed: boolean; version?: string } };
   analyze_video: { input: { path: string }; output: VideoMetadataResult };
+  extract_key_frames: {
+    input: { path: string; maxFrames?: number; sceneThreshold?: number };
+    output: string[];
+  };
   get_export_dir: { input: Record<string, never>; output: string };
   run_ffprobe: { input: { args: string[] }; output: string };
 

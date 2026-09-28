@@ -7,6 +7,8 @@ import type { VideoInfo, Scene } from '@/types';
 import type { SceneFeatureSet } from '../types';
 import { SCENE_TYPES } from '../types';
 import { logger } from '../../../../shared/utils/logging';
+import { isTauriEnv } from '@/shared/utils/platform';
+import { convertFileSrc } from '@tauri-apps/api/core';
 import { OUT_SCENE_PALETTE } from '@/core/video/output-colors';
 
 // ============================================
@@ -190,10 +192,31 @@ class SceneDetectionService {
   }
 
   /**
-   * 生成缩略图
+   * 生成缩略图（兼容桌面端文件路径与安全降级）
    */
   private async generateThumbnail(videoPath: string, timestamp: number): Promise<string> {
+    if (typeof document === 'undefined' || !videoPath) {
+      return '';
+    }
+
     return new Promise((resolve, reject) => {
+      let isSettled = false;
+      const cleanup = () => {
+        isSettled = true;
+        clearTimeout(timer);
+        video.onloadeddata = null;
+        video.onseeked = null;
+        video.onerror = null;
+        video.src = '';
+      };
+
+      const timer = setTimeout(() => {
+        if (!isSettled) {
+          cleanup();
+          resolve('');
+        }
+      }, 1500);
+
       const video = document.createElement('video');
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
@@ -201,22 +224,50 @@ class SceneDetectionService {
       video.crossOrigin = 'anonymous';
 
       video.onloadeddata = () => {
+        if (isSettled) return;
         canvas.width = 320;
-        canvas.height = Math.round(320 * (video.videoHeight / video.videoWidth));
-        video.currentTime = timestamp;
+        canvas.height = Math.round(320 * (video.videoHeight / (video.videoWidth || 1)));
+        video.currentTime = Math.max(0, timestamp);
       };
 
       video.onseeked = () => {
+        if (isSettled) return;
         if (ctx) {
-          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-          resolve(canvas.toDataURL('image/jpeg', 0.8));
+          try {
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+            cleanup();
+            resolve(dataUrl);
+            return;
+          } catch {
+            cleanup();
+            resolve('');
+            return;
+          }
         } else {
+          cleanup();
           reject(new Error('无法创建画布'));
+          return;
         }
       };
 
-      video.onerror = () => reject(new Error('无法加载视频'));
-      video.src = videoPath;
+      video.onerror = () => {
+        if (isSettled) return;
+        cleanup();
+        reject(new Error('无法加载视频'));
+      };
+
+      const src =
+        isTauriEnv() &&
+        !videoPath.startsWith('http://') &&
+        !videoPath.startsWith('https://') &&
+        !videoPath.startsWith('blob:') &&
+        !videoPath.startsWith('data:') &&
+        !videoPath.startsWith('asset:')
+          ? convertFileSrc(videoPath)
+          : videoPath;
+
+      video.src = src;
     });
   }
 

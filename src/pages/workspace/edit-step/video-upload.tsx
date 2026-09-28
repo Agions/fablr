@@ -22,7 +22,8 @@ interface VideoUploadProps {
 }
 
 const VideoUpload: React.FC<VideoUploadProps> = memo(({ onNext }) => {
-  const { projectState, state, goToNextStep, handleDelete } = useVideoUpload(onNext);
+  const upload = useVideoUpload(onNext);
+  const { projectState, state, goToNextStep, handleDelete } = upload;
   const { uploadStatus } = state;
 
   // === 已上传视频显示 ===
@@ -59,7 +60,10 @@ const VideoUpload: React.FC<VideoUploadProps> = memo(({ onNext }) => {
           <h2>上传进度</h2>
           <p>{uploadStatus === 'completed' ? '上传完成，正在准备视频...' : '正在上传视频，请稍候'}</p>
         </div>
-        <VideoUploadProgress />
+        <VideoUploadProgress
+          state={state}
+          handlePauseResume={upload.handlePauseResume}
+        />
       </div>
     );
   }
@@ -71,7 +75,15 @@ const VideoUpload: React.FC<VideoUploadProps> = memo(({ onNext }) => {
         <h2>上传视频</h2>
         <p>支持多种视频格式，时长建议 1-30 分钟</p>
       </div>
-      <VideoUploadDropzone />
+      <VideoUploadDropzone
+        uploadState={state}
+        projectState={projectState}
+        handleDragOver={upload.handleDragOver}
+        handleDragLeave={upload.handleDragLeave}
+        handleDrop={upload.handleDrop}
+        handleClick={upload.handleClick}
+        handleFileChange={upload.handleFileChange}
+      />
       <div className={styles.hintAlert}>
         <div className={styles.hintAlertHeader}>
           <Info className={styles.hintIcon} size={16} />

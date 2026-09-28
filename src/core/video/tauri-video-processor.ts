@@ -48,25 +48,27 @@ export class TauriVideoProcessor extends BaseVideoProcessor {
   // ---------- Extraction ----------
 
   protected async doExtractKeyFrames(
-    _videoPath: string,
+    videoPath: string,
     options: ExtractKeyFramesOptions,
     duration?: number
   ): Promise<KeyFrame[]> {
-    const { maxFrames: _maxFrames = 10, sceneThreshold: _sceneThreshold = 0.3 } = options ?? {};
-    // NOTE: `framePaths` is intentionally hard-coded to an empty array because
-    // `extract_key_frames` is not yet exposed as a Tauri command. The `.map()`
-    // callback and the `framePaths.length > 0` truthy arm are dead code paths
-    // kept for the day the upstream command lands; do not "simplify" without
-    // first wiring up a real implementation.
-    const framePaths: string[] = [];
-    const totalDuration = duration ?? 0;
-    const interval = framePaths.length > 0 ? totalDuration / framePaths.length : 0;
-    return framePaths.map((path, index) => ({
-      id: crypto.randomUUID(),
-      timestamp: index * interval,
-      path,
-      description: '',
-    }));
+    const { maxFrames = 10, sceneThreshold = 0.3 } = options ?? {};
+    try {
+      const framePaths = await tauri.extractKeyFrames(videoPath, {
+        maxFrames,
+        sceneThreshold,
+      });
+      const totalDuration = duration ?? 0;
+      const interval = framePaths.length > 0 ? totalDuration / framePaths.length : 0;
+      return framePaths.map((path, index) => ({
+        id: crypto.randomUUID(),
+        timestamp: index * interval,
+        path,
+        description: '',
+      }));
+    } catch {
+      return [];
+    }
   }
 
   protected async doGenerateThumbnail(_videoPath: string, _time: number): Promise<string> {

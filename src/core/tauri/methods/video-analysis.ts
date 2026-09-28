@@ -12,6 +12,18 @@ export const videoAnalysis = {
     return invoke(TauriCommand.ANALYZE_VIDEO, { path });
   },
 
+  /** 提取视频关键帧 */
+  async extractKeyFrames(
+    path: string,
+    options?: { maxFrames?: number; sceneThreshold?: number }
+  ): Promise<string[]> {
+    return invoke(TauriCommand.EXTRACT_KEY_FRAMES, {
+      path,
+      maxFrames: options?.maxFrames,
+      sceneThreshold: options?.sceneThreshold,
+    });
+  },
+
   /** 运行 FFprobe，返回原始输出 */
   async runFFprobe(args: string[]): Promise<string> {
     return invoke(TauriCommand.RUN_FFPROBE, { args });

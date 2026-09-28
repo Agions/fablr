@@ -8,8 +8,25 @@ import { VIDEO_EXTENSIONS } from '../config/video-upload-config';
 import { UploadCloudIcon } from '@/components/icons';
 import styles from './video-upload.module.less';
 
-const VideoUploadDropzone: React.FC = () => {
-  const { state: uploadState, projectState, handleDragOver, handleDragLeave, handleDrop, handleClick, handleFileChange } = useVideoUpload();
+interface VideoUploadDropzoneProps {
+  uploadState?: ReturnType<typeof useVideoUpload>['state'];
+  projectState?: ReturnType<typeof useVideoUpload>['projectState'];
+  handleDragOver?: ReturnType<typeof useVideoUpload>['handleDragOver'];
+  handleDragLeave?: ReturnType<typeof useVideoUpload>['handleDragLeave'];
+  handleDrop?: ReturnType<typeof useVideoUpload>['handleDrop'];
+  handleClick?: ReturnType<typeof useVideoUpload>['handleClick'];
+  handleFileChange?: ReturnType<typeof useVideoUpload>['handleFileChange'];
+}
+
+const VideoUploadDropzone: React.FC<VideoUploadDropzoneProps> = (props) => {
+  const fallbackHook = useVideoUpload();
+  const uploadState = props.uploadState ?? fallbackHook.state;
+  const projectState = props.projectState ?? fallbackHook.projectState;
+  const handleDragOver = props.handleDragOver ?? fallbackHook.handleDragOver;
+  const handleDragLeave = props.handleDragLeave ?? fallbackHook.handleDragLeave;
+  const handleDrop = props.handleDrop ?? fallbackHook.handleDrop;
+  const handleClick = props.handleClick ?? fallbackHook.handleClick;
+  const handleFileChange = props.handleFileChange ?? fallbackHook.handleFileChange;
 
   if (!projectState.stepStatus['project-create']) {
     return (

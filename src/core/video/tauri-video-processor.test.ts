@@ -11,6 +11,7 @@ vi.mock('@/core/tauri', () => ({
     generatePreview: vi.fn(),
     exportVideo: vi.fn(),
     cancelExport: vi.fn(),
+    extractKeyFrames: vi.fn(),
   },
 }));
 
@@ -28,6 +29,7 @@ const cutVideoMock = vi.mocked(tauri.cutVideo);
 const generatePreviewMock = vi.mocked(tauri.generatePreview);
 const exportVideoMock = vi.mocked(tauri.exportVideo);
 const cancelExportMock = vi.mocked(tauri.cancelExport);
+const extractKeyFramesMock = vi.mocked(tauri.extractKeyFrames);
 const listenMock = vi.mocked(listen);
 
 describe('TauriVideoProcessor', () => {
@@ -111,18 +113,26 @@ describe('TauriVideoProcessor', () => {
   // ---------- Extraction ----------
 
   describe('extractKeyFrames', () => {
-    it('returns empty array (no tauri command exposed)', async () => {
+    it('calls tauri.extractKeyFrames and returns KeyFrame array', async () => {
+      extractKeyFramesMock.mockResolvedValue(['/tmp/f1.jpg', '/tmp/f2.jpg']);
+      const frames = await processor.extractKeyFrames('/v/a.mp4', { maxFrames: 2, sceneThreshold: 0.4 }, 20);
+      expect(extractKeyFramesMock).toHaveBeenCalledWith('/v/a.mp4', {
+        maxFrames: 2,
+        sceneThreshold: 0.4,
+      });
+      expect(frames).toHaveLength(2);
+      expect(frames[0].path).toBe('/tmp/f1.jpg');
+      expect(frames[1].path).toBe('/tmp/f2.jpg');
+    });
+
+    it('returns empty array when tauri command fails or returns empty', async () => {
+      extractKeyFramesMock.mockResolvedValue([]);
       const frames = await processor.extractKeyFrames('/v/a.mp4');
       expect(frames).toEqual([]);
     });
 
     it('throws when videoPath is empty', async () => {
       await expect(processor.extractKeyFrames('')).rejects.toThrow(/路径/);
-    });
-
-    it('uses default options when none provided', async () => {
-      const frames = await processor.extractKeyFrames('/v/a.mp4');
-      expect(Array.isArray(frames)).toBe(true);
     });
   });
 

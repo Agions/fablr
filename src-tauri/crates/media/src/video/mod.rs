@@ -20,3 +20,22 @@ pub use metadata::probe_metadata;
 pub use mix_audio::{mix_audio, MixAudioInput};
 pub use processor::VideoProcessor;
 pub use thumbnail::generate_thumbnail_impl;
+
+/// Async wrapper to extract keyframes via blocking task
+pub async fn extract_keyframes(
+    path: String,
+    max_frames: Option<u32>,
+    scene_threshold: Option<f64>,
+) -> Result<Vec<String>, String> {
+    tokio::task::spawn_blocking(move || {
+        let processor = VideoProcessor::new();
+        processor.extract_keyframes(
+            &path,
+            max_frames.unwrap_or(10),
+            scene_threshold.unwrap_or(0.3),
+        )
+    })
+    .await
+    .map_err(|e| format!("关键帧提取任务失败: {e}"))?
+}
+

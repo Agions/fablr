@@ -58,13 +58,13 @@ const VideoSelector: React.FC<VideoSelectorProps> = ({
     };
   }, []);
 
-  // 获取文件名（兼容 Web 和 Tauri 环境）
+  // 获取文件名（兼容 Web 和 Tauri 环境，支持 Windows 与 POSIX 路径）
   const getFileName = useCallback((path: string | null): string => {
     if (!path) return '';
     if (path.startsWith('blob:') || path.startsWith('http')) {
       return '视频文件';
     }
-    return path.split('/').pop() || path;
+    return path.split(/[/\\]/).pop() || path;
   }, []);
 
   // 处理视频文件（通用逻辑）
@@ -82,8 +82,10 @@ const VideoSelector: React.FC<VideoSelectorProps> = ({
         const videoMetadata = await videoProcessor.analyze(filePath);
         dispatch({ type:'SET_METADATA', payload: videoMetadata });
         onVideoSelect(filePath, videoMetadata);
+        notify.success('视频导入并解析成功');
       } catch (error) {
         logger.error('分析视频失败:', { error });
+        notify.warning('未获取到完整视频元数据，可继续使用');
         onVideoSelect(filePath);
       } finally {
         dispatch({ type:'SET_IS_ANALYZING', payload: false });

@@ -22,3 +22,13 @@ pub async fn mix_audio(input: MixAudioInput) -> Result<String, String> {
 pub async fn get_audio_duration(path: String) -> Result<f64, String> {
     media::video::get_audio_duration(path).await
 }
+
+#[tauri::command]
+pub async fn extract_key_frames(
+    path: String,
+    max_frames: Option<u32>,
+    scene_threshold: Option<f64>,
+) -> Result<Vec<String>, String> {
+    media::video::extract_keyframes(path, max_frames, scene_threshold).await
+}
+

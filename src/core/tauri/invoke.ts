@@ -7,6 +7,7 @@ import type { TauriCommandName, TauriCommandOutput } from './command-types';
 export const TauriCommand = {
   CHECK_FFMPEG: 'check_ffmpeg',
   ANALYZE_VIDEO: 'analyze_video',
+  EXTRACT_KEY_FRAMES: 'extract_key_frames',
   GET_EXPORT_DIR: 'get_export_dir',
   RUN_FFPROBE: 'run_ffprobe',
 

@@ -17,7 +17,7 @@ pub use commands::ai::{
     run_ai_director_plan, synthesize_speech, synthesize_speech_batch, synthesize_speech_ssml,
     check_tts_available, translate_text, TtsBackendInfo,
 };
-pub use commands::video::{cut_video, get_audio_duration, mix_audio};
+pub use commands::video::{cut_video, extract_key_frames, get_audio_duration, mix_audio};
 pub use commands::subtitle::transcribe_audio;
 pub use commands::project::{
     project_create, project_delete, project_list, project_load, project_save,
@@ -86,6 +86,7 @@ pub fn run() {
             cut_video,
             mix_audio,
             get_audio_duration,
+            extract_key_frames,
             check_ffmpeg,
             analyze_video,
             run_ffprobe,

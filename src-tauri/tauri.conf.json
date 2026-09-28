@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/schema.json",
   "productName": "Fablr",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "identifier": "com.fablr.desktop",
   "build": {
     "beforeDevCommand": "npm run dev",

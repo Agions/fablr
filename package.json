@@ -2,7 +2,7 @@
   "name": "fablr",
   "productName": "Fablr",
   "private": true,
-  "version": "2.2.0",
+  "version": "2.2.1",
   "description": "Fablr (剧工) — 开源 AI 影视/短剧解说创作工坊 (Tauri 2 + Rust)。长视频/短剧拆条 + 多 Agent 智能剧本研磨 + 本地 Whisper 字幕 + 配音合成 + 剪映草稿导出与多平台消重发布，100% 本地优先处理。",
   "author": "Agions <agions@qq.com>",
   "license": "MIT",

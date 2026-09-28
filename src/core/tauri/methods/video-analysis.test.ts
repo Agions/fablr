@@ -103,4 +103,28 @@ describe('videoAnalysis tauri methods', () => {
       await expect(videoAnalysis.runFFprobe([])).rejects.toThrow('ffprobe crashed');
     });
   });
+
+  describe('videoAnalysis.extractKeyFrames', () => {
+    it('invokes EXTRACT_KEY_FRAMES and returns frame paths', async () => {
+      invokeMock.mockResolvedValue(['/tmp/frame1.jpg']);
+
+      const result = await videoAnalysis.extractKeyFrames('/v/movie.mp4', {
+        maxFrames: 5,
+        sceneThreshold: 0.35,
+      });
+
+      expect(result).toEqual(['/tmp/frame1.jpg']);
+      expect(invokeMock).toHaveBeenCalledWith(TauriCommand.EXTRACT_KEY_FRAMES, {
+        path: '/v/movie.mp4',
+        maxFrames: 5,
+        sceneThreshold: 0.35,
+      });
+    });
+
+    it('propagates errors thrown by invoke', async () => {
+      invokeMock.mockRejectedValue(new Error('extraction failed'));
+
+      await expect(videoAnalysis.extractKeyFrames('/v/bad.mp4')).rejects.toThrow('extraction failed');
+    });
+  });
 });

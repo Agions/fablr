@@ -13,7 +13,6 @@ import { generateScriptWithOpenAI, analyzeKeyFramesWithAI } from '@/core/service
 import { notify } from '@/shared';
 import { logger } from '@/shared/utils/logging';
 import { parseScriptText } from '../project-edit-utils';
-import { AppError } from '@/core/errors';
 
 /** 分析阶段标签 */
 const ANALYSIS_STAGE_LABELS: Record<string, string> = {
@@ -76,24 +75,43 @@ export function useVideoAnalysis({
       // 阶段 2: 提取关键帧
       stage = 'keyframes';
       notify.info('正在提取关键帧...');
-      const frames = await videoProcessor.extractKeyFrames(videoPath, {}, meta.duration);
-      const paths = frames.map((f) => f.path);
-      if (paths.length === 0) throw new AppError('APP_KEYFRAMES_EMPTY', '未提取到关键帧，请尝试更换视频或检查视频时长', {
-        userMessage: '未提取到关键帧',
-      });
-      onKeyFramesReady(paths);
+      let paths: string[] = [];
+      try {
+        const frames = await videoProcessor.extractKeyFrames(videoPath, {}, meta.duration);
+        paths = frames.map((f) => f.path).filter(Boolean);
+      } catch (err) {
+        logger.warn('提取关键帧异常，降级处理:', { error: err });
+      }
+
+      if (paths.length > 0) {
+        onKeyFramesReady(paths);
+      } else {
+        notify.info('未提取到镜头关键帧，继续进行智能脚本生成');
+      }
 
       // 阶段 3: AI 分析关键帧内容
-      stage = 'frames-ai';
-      notify.info('正在分析关键帧内容...');
-      const descriptions = await analyzeKeyFramesWithAI(paths);
+      let descriptions: string[] = [];
+      if (paths.length > 0) {
+        stage = 'frames-ai';
+        notify.info('正在分析关键帧内容...');
+        try {
+          descriptions = await analyzeKeyFramesWithAI(paths);
+        } catch (err) {
+          logger.warn('AI 关键帧分析失败，继续生成基础脚本:', { error: err });
+        }
+      }
 
       // 阶段 4: 生成解说脚本
       stage = 'script';
       notify.info('正在根据视频内容生成脚本...');
-      const text = await generateScriptWithOpenAI(meta, descriptions, {
-        style: '自然流畅', tone: '专业', length: 'medium', purpose: '内容展示',
-      });
+      let text = '';
+      try {
+        text = await generateScriptWithOpenAI(meta, descriptions, {
+          style: '自然流畅', tone: '专业', length: 'medium', purpose: '内容展示',
+        });
+      } catch (err) {
+        logger.warn('AI 脚本生成失败，降级生成基础分镜:', { error: err });
+      }
 
       // 解析脚本，兜底生成默认片段
       let script = parseScriptText(text);

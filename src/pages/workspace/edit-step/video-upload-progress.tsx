@@ -9,8 +9,15 @@ import { FileVideoIcon } from '@/components/icons';
 import { Play, Pause } from 'lucide-react';
 import styles from './video-upload.module.less';
 
-const VideoUploadProgress: React.FC = () => {
-  const { state, handlePauseResume } = useVideoUpload();
+interface VideoUploadProgressProps {
+  state?: ReturnType<typeof useVideoUpload>['state'];
+  handlePauseResume?: ReturnType<typeof useVideoUpload>['handlePauseResume'];
+}
+
+const VideoUploadProgress: React.FC<VideoUploadProgressProps> = (props) => {
+  const fallbackHook = useVideoUpload();
+  const state = props.state ?? fallbackHook.state;
+  const handlePauseResume = props.handlePauseResume ?? fallbackHook.handlePauseResume;
   const { uploading, uploadProgress, uploadStatus, currentFile } = state;
 
   if (!uploading && uploadStatus !== 'completed') {

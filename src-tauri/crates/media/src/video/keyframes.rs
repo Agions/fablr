@@ -51,12 +51,43 @@ pub fn extract_keyframes_impl(
 
     frames.sort();
 
+    // Fallback: if scene detection found 0 frames, sample frames using thumbnail/fps filter
+    if frames.is_empty() {
+        let fallback_pattern = temp_dir.join("fallback_%04d.jpg");
+        let _ = Command::new(ffmpeg_path)
+            .args([
+                "-y", "-i", path,
+                "-vf", "thumbnail,scale=iw:-1",
+                "-frames:v", &max_frames.max(1).to_string(),
+                "-vsync", "vfr",
+                &fallback_pattern.to_string_lossy(),
+            ])
+            .output();
+
+        if let Ok(d) = fs::read_dir(&temp_dir) {
+            frames = d.filter_map(|e| e.ok()).filter_map(|e| {
+                let p = e.path();
+                if p.extension().and_then(|e| e.to_str()) == Some("jpg") {
+                    Some(p)
+                } else {
+                    None
+                }
+            }).collect();
+            frames.sort();
+        }
+    }
+
     let result: Vec<String> = frames
         .into_iter()
         .take(max_frames as usize)
         .map(|p| p.display().to_string())
         .collect();
 
-    let _ = fs::remove_dir_all(&temp_dir);
+    // Do NOT remove temp_dir on success, as returned paths point to the images within it.
+    // If no frames were extracted at all, clean up empty temp directory.
+    if result.is_empty() {
+        let _ = fs::remove_dir_all(&temp_dir);
+    }
+
     Ok(result)
 }

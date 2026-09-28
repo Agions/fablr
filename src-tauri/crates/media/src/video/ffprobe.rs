@@ -3,14 +3,18 @@ use models::{FFmpegCheckResult, VideoMetadataResult};
 use crate::utils::{cmd_err, cmd_first_line, err_msg, parse_fraction};
 use serde_json::Value;
 
-/// Extract a string from a JSON value, or None.
-fn json_str(v: &Value, key: &str) -> Option<String> {
-    v.get(key)?.as_str().map(String::from)
+/// Parse a u64 from a JSON string or number field, or None.
+fn json_parse_u64(v: &Value, key: &str) -> Option<u64> {
+    v.get(key).and_then(|val| {
+        val.as_u64().or_else(|| val.as_str().and_then(|s| s.parse().ok()))
+    })
 }
 
-/// Parse a u64 from a JSON string field, or None.
-fn json_parse_u64(v: &Value, key: &str) -> Option<u64> {
-    json_str(v, key)?.parse().ok()
+/// Parse a f64 from a JSON string or number field, or None.
+fn json_parse_f64(v: &Value, key: &str) -> Option<f64> {
+    v.get(key).and_then(|val| {
+        val.as_f64().or_else(|| val.as_str().and_then(|s| s.parse::<f64>().ok()))
+    })
 }
 
 
@@ -41,7 +45,7 @@ pub async fn analyze_video(path: String) -> Result<VideoMetadataResult, String> 
         .arg("-select_streams")
         .arg("v:0")
         .arg("-show_entries")
-        .arg("stream=width,height,codec_name,r_frame_rate,bit_rate")
+        .arg("stream=width,height,codec_name,r_frame_rate,bit_rate,duration")
         .arg("-show_entries")
         .arg("format=duration,bit_rate")
         .arg("-of")
@@ -70,7 +74,9 @@ pub async fn analyze_video(path: String) -> Result<VideoMetadataResult, String> 
     let fps = parse_fraction(stream.get("r_frame_rate").and_then(|v| v.as_str()).unwrap_or("0/1"));
 
     let format = payload.get("format").cloned().unwrap_or(serde_json::Value::Null);
-    let duration = json_parse_u64(&format, "duration").map(|v| v as f64).unwrap_or(0.0);
+    let duration = json_parse_f64(&format, "duration")
+        .or_else(|| json_parse_f64(stream, "duration"))
+        .unwrap_or(0.0);
     let stream_bitrate = json_parse_u64(stream, "bit_rate");
     let format_bitrate = json_parse_u64(&format, "bit_rate");
     let bitrate = stream_bitrate.or(format_bitrate).unwrap_or(0);
