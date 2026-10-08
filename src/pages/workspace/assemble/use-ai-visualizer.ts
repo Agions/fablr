@@ -245,7 +245,7 @@ export function useAiVisualizer(onNext?: () => void): UseAiVisualizerReturn {
     } finally {
       dispatch({ type: 'SET_ANALYZING', payload: false });
     }
-  }, [projectState.currentVideo, localState.config, setAnalysis, projectDispatch, timeout, dispatch]);
+  }, [projectState.currentVideo, projectState.analysis, localState.config, setAnalysis, projectDispatch, timeout, dispatch]);
 
   const handleReAnalyze = useCallback(() => {
     dispatch({ type: 'SET_PROGRESS', payload: 0 });
