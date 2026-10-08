@@ -7,6 +7,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { withErrorBoundary } from '@/components/common/error-boundary';
 import { loadProjectWithRetry } from '@/core/services/project/project-file-service';
+import { exportJianYingDraft } from '@/core/exporters/jianying-exporter';
 import { notify } from '@/shared';
 import type { MediaSourceItem, ScriptTimelineBlock } from './types';
 import { WorkshopNavHeader } from './components/workshop-nav-header';
@@ -108,8 +109,79 @@ export const WorkspaceStudioPage: React.FC = () => {
     }, 800);
   };
 
-  const handleExportJianying = () => {
-    notify.success('剪映工程草稿 (draft_content.json) 导出成功！');
+  const handleExportJianying = async () => {
+    try {
+      const videoClips = sources
+        .filter(s => s.type === 'video')
+        .map((s, idx) => ({
+          id: s.id,
+          sourcePath: s.name,
+          startTimeUs: idx * 5_000_000,
+          durationUs: 5_000_000,
+          sourceInUs: 0,
+          sourceOutUs: 5_000_000,
+          speed: 1.0,
+        }));
+
+      if (videoClips.length === 0) {
+        videoClips.push({
+          id: 'v_default_main',
+          sourcePath: activeSource?.name || '主视频镜头01.mp4',
+          startTimeUs: 0,
+          durationUs: 10_000_000,
+          sourceInUs: 0,
+          sourceOutUs: 10_000_000,
+          speed: 1.0,
+        });
+      }
+
+      let currentTimeUs = 0;
+      const voiceoverClips = scriptBlocks.map(b => {
+        const start = currentTimeUs;
+        const dur = (b.durationSec || 5) * 1_000_000;
+        currentTimeUs += dur;
+        return {
+          id: `vo_${b.id}`,
+          sourcePath: `${b.label}_tts.mp3`,
+          startTimeUs: start,
+          durationUs: dur,
+          volume: 1.0,
+        };
+      });
+
+      const subtitles = scriptBlocks.map((b, idx) => ({
+        id: `sub_${b.id}`,
+        text: b.text,
+        startTimeUs: voiceoverClips[idx]?.startTimeUs ?? idx * 5_000_000,
+        durationUs: voiceoverClips[idx]?.durationUs ?? 5_000_000,
+      }));
+
+      const bgmClips = [
+        {
+          id: `bgm_${bgmGenre}`,
+          sourcePath: `${bgmGenre}_atmosphere.mp3`,
+          startTimeUs: 0,
+          durationUs: Math.max(currentTimeUs, 30_000_000),
+          volume: 0.4,
+        },
+      ];
+
+      const res = await exportJianYingDraft({
+        projectName: projectTitle || '短剧解说创作项目',
+        aspectRatio: '9:16',
+        fps: 30,
+        videoClips,
+        voiceoverClips,
+        bgmClips,
+        subtitles,
+      });
+
+      if (res.success) {
+        notify.success(`剪映工程草稿 (draft_content.json) 导出成功！${res.filePath ? `已保存至: ${res.filePath}` : ''}`);
+      }
+    } catch (err) {
+      notify.error(err, '剪映草稿工程导出失败');
+    }
   };
 
   return (

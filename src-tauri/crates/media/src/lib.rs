@@ -24,7 +24,7 @@ pub mod utils;
 
 pub use binary::{hw_accel, HwAccel};
 pub use video::{VideoProcessor, cut_video, mix_audio, MixAudioInput, get_audio_duration};
-pub use subtitle::transcribe_audio;
+pub use subtitle::{check_whisper_available, resolve_python_binary, transcribe_audio};
 pub use render::ass_engine;
 pub use render::subtitle_burnin;
 pub use render::ffmpeg_builder;

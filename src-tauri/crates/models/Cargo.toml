@@ -1,0 +1,12 @@
+[package]
+name = "models"
+version = "2.2.0"
+edition = "2021"
+description = "Fablr 核心数据模型与契约"
+authors = ["Agions <agions@qq.com>"]
+license = "MIT"
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "2"

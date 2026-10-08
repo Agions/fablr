@@ -30,6 +30,39 @@ pub fn extract_audio_to_wav(video_path: &str, output_wav: &Path) -> Result<(), S
     Ok(())
 }
 
+/// 跨平台解析 Python 执行程序路径（优先环境变量，其次 python3，兼容 Windows python.exe）
+pub fn resolve_python_binary() -> String {
+    if let Ok(p) = std::env::var("FABLR_PYTHON_PATH") {
+        if !p.trim().is_empty() {
+            return p;
+        }
+    }
+    let p3 = resolve_binary_path("python3");
+    if p3 != "python3" {
+        return p3;
+    }
+    let p = resolve_binary_path("python");
+    if p != "python" {
+        return p;
+    }
+    if cfg!(target_os = "windows") {
+        "python".to_string()
+    } else {
+        "python3".to_string()
+    }
+}
+
+/// 检查系统当前 Python 环境是否已安装 faster-whisper
+pub fn check_whisper_available() -> bool {
+    let python_bin = resolve_python_binary();
+    std::process::Command::new(&python_bin)
+        .arg("-c")
+        .arg("import faster_whisper")
+        .output()
+        .map(|o| o.status.success())
+        .unwrap_or(false)
+}
+
 /// Transcribe audio using faster-whisper
 pub async fn transcribe_audio(
     app: tauri::AppHandle,
@@ -84,8 +117,9 @@ pub async fn transcribe_audio(
         total_segments: None,
     });
 
+    let python_bin = resolve_python_binary();
     let output = tokio::task::spawn_blocking(move || {
-        std::process::Command::new("python3").arg("-c").arg(&python_code).output()
+        std::process::Command::new(&python_bin).arg("-c").arg(&python_code).output()
     })
     .await
     .map_err(|e| format!("执行 faster-whisper 失败: {}", e))?

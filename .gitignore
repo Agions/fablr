@@ -71,7 +71,7 @@ audio_cache/
 video_cache/
 
 # AI Model cache
-models/
+/models/
 model_cache/
 *.gguf
 *.safetensors

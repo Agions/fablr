@@ -1,5 +1,5 @@
 {
-  "$schema": "../node_modules/@tauri-apps/cli/schema.json",
+  "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "Fablr",
   "version": "2.2.1",
   "identifier": "com.fablr.desktop",
@@ -43,7 +43,8 @@
       "appimage"
     ],
     "resources": {
-      "../dist": "dist"
+      "../dist": "dist",
+      "../docs/dist-manual": "manual"
     },
     "icon": [
       "icons/32x32.png",

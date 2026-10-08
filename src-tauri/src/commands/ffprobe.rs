@@ -1,10 +1,15 @@
 //! ffprobe commands — Tauri IPC 桥接层，委托至 media::video::ffprobe
 
-use models::{FFmpegCheckResult, VideoMetadataResult};
+use models::{FFmpegCheckResult, SystemDiagnosticsResult, VideoMetadataResult};
 
 #[tauri::command]
 pub async fn check_ffmpeg() -> Result<FFmpegCheckResult, String> {
     media::video::check_ffmpeg().await
+}
+
+#[tauri::command]
+pub async fn system_diagnostics() -> Result<SystemDiagnosticsResult, String> {
+    media::video::run_system_diagnostics().await
 }
 
 #[tauri::command]

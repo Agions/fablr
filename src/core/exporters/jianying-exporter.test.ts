@@ -52,6 +52,45 @@ describe('JianYing Exporter', () => {
     expect(draft.duration).toBe(5_000_000);
   });
 
+  it('generates bgm track and speed mapping when provided', () => {
+    const inputWithBgmAndSpeed: JianYingProjectExportInput = {
+      ...sampleInput,
+      videoClips: [
+        {
+          id: 'clip_fast',
+          sourcePath: '/videos/fast.mp4',
+          startTimeUs: 0,
+          durationUs: 4_000_000,
+          sourceInUs: 0,
+          sourceOutUs: 5_000_000,
+          speed: 1.25,
+        },
+      ],
+      bgmClips: [
+        {
+          id: 'bgm_1',
+          sourcePath: '/audio/bgm.mp3',
+          startTimeUs: 0,
+          durationUs: 8_000_000,
+          volume: 0.6,
+        },
+      ],
+    };
+
+    const draft = jianYingExporter.generateDraftContent(inputWithBgmAndSpeed);
+
+    expect(draft.duration).toBe(8_000_000); // BGM is longest
+    expect(draft.materials.speeds.length).toBe(1);
+    expect(draft.materials.speeds[0].speed).toBe(1.25);
+    const videoTrack = draft.tracks.find(t => t.id === 'track_main_video');
+    expect(videoTrack?.segments[0].speed_id).toBe('speed_clip_fast');
+
+    const bgmTrack = draft.tracks.find(t => t.id === 'track_bgm_audio');
+    expect(bgmTrack).toBeDefined();
+    expect(bgmTrack?.segments.length).toBe(1);
+    expect(bgmTrack?.segments[0].material_id).toBe('mat_bgm_bgm_1');
+  });
+
   it('generates meta info', () => {
     const meta = jianYingExporter.generateDraftMeta('测试项目', 5_000_000);
     expect(meta.draft_name).toBe('测试项目');
@@ -73,5 +112,25 @@ describe('Anti-Dedup Service', () => {
     const res = antiDedupService.buildFfmpegDedupConfig({ enabled: false });
     expect(res.videoFilters.length).toBe(0);
     expect(res.audioFilters.length).toBe(0);
+  });
+
+  it('generates specific filters for mirrorFlip, lightReconstruction, and pipOverlay', () => {
+    const res = antiDedupService.buildFfmpegDedupConfig({
+      enabled: true,
+      mirrorFlip: true,
+      lightReconstruction: true,
+      pipOverlay: true,
+      filmGrain: false,
+      dynamicZoom: false,
+      audioEqShift: false,
+      metaDataReset: false,
+    });
+
+    expect(res.videoFilters.some(f => f.includes('hflip'))).toBe(true);
+    expect(res.videoFilters.some(f => f.includes('eq='))).toBe(true);
+    expect(res.videoFilters.some(f => f.includes('boxblur'))).toBe(true);
+    expect(res.summaryDesc.some(d => d.includes('镜像'))).toBe(true);
+    expect(res.summaryDesc.some(d => d.includes('光影'))).toBe(true);
+    expect(res.summaryDesc.some(d => d.includes('画中画'))).toBe(true);
   });
 });

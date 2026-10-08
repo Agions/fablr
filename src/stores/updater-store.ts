@@ -37,7 +37,7 @@ export const useUpdaterStore = create<UpdaterState>()(
   persist(
     (set, get) => ({
       status: 'idle',
-      currentVersion: '2.2.0',
+      currentVersion: '2.2.1',
       updateInfo: null,
       isModalOpen: false,
       hasUnreadUpdate: false,

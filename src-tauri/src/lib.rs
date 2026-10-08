@@ -11,7 +11,7 @@ pub use commands::{
 };
 pub use models::*;
 pub use db::ProjectService;
-pub use commands::ffprobe::{analyze_video, check_ffmpeg, run_ffprobe};
+pub use commands::ffprobe::{analyze_video, check_ffmpeg, run_ffprobe, system_diagnostics};
 pub use commands::ai::{
     detect_highlights, detect_smart_segments, detect_zcr_bursts, get_export_dir, list_tts_backends,
     run_ai_director_plan, synthesize_speech, synthesize_speech_batch, synthesize_speech_ssml,
@@ -90,6 +90,7 @@ pub fn run() {
             check_ffmpeg,
             analyze_video,
             run_ffprobe,
+            system_diagnostics,
             // Platform presets + 平台导出（Stage 15.2）
             list_platform_presets,
             platform_export,

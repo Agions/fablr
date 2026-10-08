@@ -12,8 +12,10 @@ vi.mock('../invoke', () => ({
   invoke: vi.fn(),
   TauriCommand: {
     CHECK_FFMPEG: 'check_ffmpeg',
+    SYSTEM_DIAGNOSTICS: 'system_diagnostics',
     ANALYZE_VIDEO: 'analyze_video',
     RUN_FFPROBE: 'run_ffprobe',
+    EXTRACT_KEY_FRAMES: 'extract_key_frames',
   },
 }));
 
@@ -125,6 +127,37 @@ describe('videoAnalysis tauri methods', () => {
       invokeMock.mockRejectedValue(new Error('extraction failed'));
 
       await expect(videoAnalysis.extractKeyFrames('/v/bad.mp4')).rejects.toThrow('extraction failed');
+    });
+  });
+
+  describe('videoAnalysis.runSystemDiagnostics', () => {
+    it('invokes SYSTEM_DIAGNOSTICS with undefined and returns diagnostics report', async () => {
+      const mockReport = {
+        os: 'macos',
+        arch: 'aarch64',
+        ffmpegInstalled: true,
+        ffmpegPath: '/opt/homebrew/bin/ffmpeg',
+        ffmpegVersion: 'ffmpeg 7.0',
+        ffprobeInstalled: true,
+        ffprobePath: '/opt/homebrew/bin/ffprobe',
+        hwAccel: 'videotoolbox',
+        hwAccelName: 'Apple VideoToolbox',
+        pythonInstalled: true,
+        pythonPath: '/usr/bin/python3',
+        whisperAvailable: true,
+      };
+      invokeMock.mockResolvedValue(mockReport);
+
+      const result = await videoAnalysis.runSystemDiagnostics();
+
+      expect(result).toEqual(mockReport);
+      expect(invokeMock).toHaveBeenCalledWith(TauriCommand.SYSTEM_DIAGNOSTICS, undefined);
+    });
+
+    it('propagates errors thrown by invoke', async () => {
+      invokeMock.mockRejectedValue(new Error('diagnostics failed'));
+
+      await expect(videoAnalysis.runSystemDiagnostics()).rejects.toThrow('diagnostics failed');
     });
   });
 });

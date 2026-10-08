@@ -8,6 +8,7 @@ import doc04 from '../../../docs/04-RUST_BACKEND_DDD.md?raw';
 import doc05 from '../../../docs/05-GETTING_STARTED.md?raw';
 import docNaming from '../../../docs/NAMING_AND_MODULARIZATION.md?raw';
 import docOverview from '../../../docs/README.md?raw';
+import docManual from '../../../docs/dist-manual/USER_MANUAL.md?raw';
 
 export interface DocItem {
   id: string;
@@ -22,6 +23,17 @@ export interface DocItem {
 }
 
 export const DOCS_REGISTRY: DocItem[] = [
+  {
+    id: 'user-manual',
+    slug: 'user-manual',
+    title: '桌面端用户使用手册',
+    category: '开发与规范',
+    description: '客户端 4 步极速上手指南、工坊工作流与常用快捷键一览',
+    iconName: 'BookOpen',
+    content: docManual,
+    readTime: '5 分钟',
+    lastUpdated: '2026-10-08',
+  },
   {
     id: 'overview',
     slug: 'overview',

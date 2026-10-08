@@ -14,7 +14,7 @@ pub mod processor;
 
 pub use audio_duration::get_audio_duration;
 pub use ffmpeg_cmd::cut_video;
-pub use ffprobe::{analyze_video, check_ffmpeg, run_ffprobe};
+pub use ffprobe::{analyze_video, check_ffmpeg, run_ffprobe, run_system_diagnostics};
 pub use keyframes::extract_keyframes_impl;
 pub use metadata::probe_metadata;
 pub use mix_audio::{mix_audio, MixAudioInput};

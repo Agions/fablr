@@ -11,6 +11,21 @@
 import type { VideoMetadataResult } from '@/types';
 import type { SubtitleTrack } from '@/types';
 
+export type SystemDiagnosticsResult = {
+  os: string;
+  arch: string;
+  ffmpegInstalled: boolean;
+  ffmpegPath?: string;
+  ffmpegVersion?: string;
+  ffprobeInstalled: boolean;
+  ffprobePath?: string;
+  hwAccel: string;
+  hwAccelName: string;
+  pythonInstalled: boolean;
+  pythonPath?: string;
+  whisperAvailable: boolean;
+};
+
 // Project DTO（与 Rust ProjectDto 对齐，Stage 12.5）
 export type ProjectDto = {
   id: string;
@@ -66,6 +81,7 @@ export type PipelineJobDto = {
 
 export type TauriCommandName =
   | 'check_ffmpeg'
+  | 'system_diagnostics'
   | 'analyze_video'
   | 'extract_key_frames'
   | 'get_export_dir'
@@ -142,6 +158,7 @@ export type TauriCommandName =
 
 type CommandNameToDefs = {
   check_ffmpeg: { input: Record<string, never>; output: { installed: boolean; version?: string } };
+  system_diagnostics: { input: Record<string, never>; output: SystemDiagnosticsResult };
   analyze_video: { input: { path: string }; output: VideoMetadataResult };
   extract_key_frames: {
     input: { path: string; maxFrames?: number; sceneThreshold?: number };

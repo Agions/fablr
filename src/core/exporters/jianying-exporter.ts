@@ -92,6 +92,14 @@ export const jianYingExporter = {
       const end = a.startTimeUs + a.durationUs;
       if (end > totalDurationUs) totalDurationUs = end;
     });
+    (input.bgmClips || []).forEach(b => {
+      const end = b.startTimeUs + b.durationUs;
+      if (end > totalDurationUs) totalDurationUs = end;
+    });
+    (input.subtitles || []).forEach(s => {
+      const end = s.startTimeUs + s.durationUs;
+      if (end > totalDurationUs) totalDurationUs = end;
+    });
 
     const draftId = `draft_${Date.now()}`;
 
@@ -120,13 +128,27 @@ export const jianYingExporter = {
       content: s.text,
     }));
 
+    const materialSpeeds: Array<{ id: string; speed: number }> = [];
+    input.videoClips.forEach(c => {
+      if (c.speed && c.speed !== 1.0) {
+        materialSpeeds.push({
+          id: `speed_${c.id}`,
+          speed: c.speed,
+        });
+      }
+    });
+
     // 2. 构建 Tracks
-    const videoTrackSegments = input.videoClips.map(c => ({
-      id: `seg_v_${c.id}`,
-      material_id: `mat_v_${c.id}`,
-      target_timerange: { start: c.startTimeUs, duration: c.durationUs },
-      source_timerange: { start: c.sourceInUs, duration: c.sourceOutUs - c.sourceInUs },
-    }));
+    const videoTrackSegments = input.videoClips.map(c => {
+      const hasSpeed = c.speed && c.speed !== 1.0;
+      return {
+        id: `seg_v_${c.id}`,
+        material_id: `mat_v_${c.id}`,
+        target_timerange: { start: c.startTimeUs, duration: c.durationUs },
+        source_timerange: { start: c.sourceInUs, duration: c.sourceOutUs - c.sourceInUs },
+        ...(hasSpeed ? { speed_id: `speed_${c.id}` } : {}),
+      };
+    });
 
     const audioTrackSegments = input.voiceoverClips.map(a => ({
       id: `seg_a_${a.id}`,
@@ -146,6 +168,18 @@ export const jianYingExporter = {
         segments: audioTrackSegments,
       },
     ];
+
+    if (input.bgmClips && input.bgmClips.length > 0) {
+      tracks.push({
+        id: 'track_bgm_audio',
+        type: 'audio',
+        segments: input.bgmClips.map(b => ({
+          id: `seg_bgm_${b.id}`,
+          material_id: `mat_bgm_${b.id}`,
+          target_timerange: { start: b.startTimeUs, duration: b.durationUs },
+        })),
+      });
+    }
 
     if (input.subtitles && input.subtitles.length > 0) {
       tracks.push({
@@ -172,7 +206,7 @@ export const jianYingExporter = {
         videos: materialVideos,
         audios: materialAudios,
         texts: materialTexts,
-        speeds: [],
+        speeds: materialSpeeds,
       },
       tracks,
       version: 2,
@@ -195,3 +229,46 @@ export const jianYingExporter = {
     };
   },
 };
+
+/**
+ * 执行剪映草稿导出保存（桌面端调用原生保存对话框并写入文件，浏览器环境回退为 Blob 下载）
+ */
+export async function exportJianYingDraft(
+  input: JianYingProjectExportInput,
+  defaultFilename?: string
+): Promise<{ success: boolean; filePath?: string; draft: JianYingDraftContent }> {
+  const draft = jianYingExporter.generateDraftContent(input);
+  const jsonContent = JSON.stringify(draft, null, 2);
+  const safeName = (input.projectName || 'fablr_project').replace(/[/\\?%*:|"<>]/g, '_');
+  const targetName = defaultFilename || `${safeName}_draft.json`;
+
+  try {
+    const { save } = await import('@tauri-apps/plugin-dialog');
+    const { writeTextFile } = await import('@tauri-apps/plugin-fs');
+    const savePath = await save({
+      defaultPath: targetName,
+      filters: [{ name: '剪映草稿工程 (*.json)', extensions: ['json'] }],
+    });
+
+    if (savePath) {
+      await writeTextFile(savePath, jsonContent);
+      return { success: true, filePath: savePath, draft };
+    }
+    return { success: false, draft };
+  } catch {
+    // 浏览器环境或环境异常降级
+    if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+      const blob = new Blob([jsonContent], { type: 'application/json;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = targetName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      return { success: true, filePath: targetName, draft };
+    }
+    return { success: true, draft };
+  }
+}

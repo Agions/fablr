@@ -7,5 +7,5 @@ pub mod transcribe;
 
 pub use types::{SubtitleResult, SubtitleSegment, TranscribeProgress, WhisperWord};
 pub use whisper::whisper_python_code;
-pub use transcribe::transcribe_audio;
+pub use transcribe::{check_whisper_available, resolve_python_binary, transcribe_audio};
 

@@ -1,5 +1,5 @@
 use crate::binary::{ffmpeg_binary, ffprobe_binary};
-use models::{FFmpegCheckResult, VideoMetadataResult};
+use models::{FFmpegCheckResult, SystemDiagnosticsResult, VideoMetadataResult};
 use crate::utils::{cmd_err, cmd_first_line, err_msg, parse_fraction};
 use serde_json::Value;
 
@@ -31,6 +31,54 @@ pub async fn check_ffmpeg() -> Result<FFmpegCheckResult, String> {
     } else {
         Ok(FFmpegCheckResult { installed: false, version: None })
     }
+}
+
+pub async fn run_system_diagnostics() -> Result<SystemDiagnosticsResult, String> {
+    let ffmpeg = ffmpeg_binary();
+    let ffprobe = ffprobe_binary();
+
+    let ffmpeg_out = tokio::process::Command::new(&ffmpeg)
+        .arg("-version")
+        .output()
+        .await;
+
+    let (ffmpeg_installed, ffmpeg_version) = match ffmpeg_out {
+        Ok(out) if out.status.success() => (true, cmd_first_line(&out).map(|s| s.trim().to_string())),
+        _ => (false, None),
+    };
+
+    let ffprobe_out = tokio::process::Command::new(&ffprobe)
+        .arg("-version")
+        .output()
+        .await;
+    let ffprobe_installed = matches!(ffprobe_out, Ok(out) if out.status.success());
+
+    let hw = crate::binary::detect_hw_accel();
+    let hw_accel = format!("{:?}", hw).to_lowercase();
+    let hw_accel_name = hw.name().to_string();
+
+    let python_bin = crate::subtitle::resolve_python_binary();
+    let python_out = tokio::process::Command::new(&python_bin)
+        .arg("--version")
+        .output()
+        .await;
+    let python_installed = matches!(python_out, Ok(out) if out.status.success());
+    let whisper_available = crate::subtitle::check_whisper_available();
+
+    Ok(SystemDiagnosticsResult {
+        os: std::env::consts::OS.to_string(),
+        arch: std::env::consts::ARCH.to_string(),
+        ffmpeg_installed,
+        ffmpeg_path: if ffmpeg_installed { Some(ffmpeg) } else { None },
+        ffmpeg_version,
+        ffprobe_installed,
+        ffprobe_path: if ffprobe_installed { Some(ffprobe) } else { None },
+        hw_accel,
+        hw_accel_name,
+        python_installed,
+        python_path: if python_installed { Some(python_bin) } else { None },
+        whisper_available,
+    })
 }
 
 

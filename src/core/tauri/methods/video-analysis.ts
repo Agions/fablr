@@ -1,10 +1,16 @@
 import { invoke, TauriCommand } from '../invoke';
+import type { SystemDiagnosticsResult } from '../command-types';
 import type { VideoMetadataResult } from '@/types';
 
 export const videoAnalysis = {
   /** 检查 FFmpeg 是否已安装 */
   async checkFFmpeg(): Promise<{ installed: boolean; version?: string }> {
     return invoke(TauriCommand.CHECK_FFMPEG, undefined);
+  },
+
+  /** 执行系统运行环境与硬件加速自检 */
+  async runSystemDiagnostics(): Promise<SystemDiagnosticsResult> {
+    return invoke(TauriCommand.SYSTEM_DIAGNOSTICS, undefined);
   },
 
   /** 分析视频，返回元数据 */

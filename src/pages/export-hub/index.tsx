@@ -6,6 +6,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { withErrorBoundary } from '@/components/common/error-boundary';
 import { loadProjectWithRetry } from '@/core/services/project/project-file-service';
+import { antiDedupService } from '@/core/services/export/anti-dedup-service';
 import { notify } from '@/shared';
 import type { MatrixPlatformItem } from './types';
 import { ExportHubHeader } from './components/export-hub-header';
@@ -97,8 +98,20 @@ export const ExportHubPage: React.FC = () => {
     setIsCheckingCompliance(true);
     setTimeout(() => {
       setIsCheckingCompliance(false);
-      setComplianceScore(98);
-      notify.success('发布前合规体检完成！版权相似度与敏感词风险低，评级：极优 (98分)');
+      const dedupConfig = antiDedupService.buildFfmpegDedupConfig({
+        enabled: true,
+        zoomBreathing,
+        filmGrain,
+        lightReconstruction,
+        pipOverlay,
+        mirrorFlip,
+        audioEqShift: true,
+        metaDataReset: true,
+      });
+      const activeFilterCount = [zoomBreathing, filmGrain, lightReconstruction, pipOverlay, mirrorFlip].filter(Boolean).length;
+      const calculatedScore = Math.min(99, 80 + activeFilterCount * 4);
+      setComplianceScore(calculatedScore);
+      notify.success(`发布前合规体检完成！已激活 ${dedupConfig.summaryDesc.length} 项消重特性，原创度与合规评分：${calculatedScore} 分`);
     }, 600);
   };
 
@@ -159,6 +172,17 @@ export const ExportHubPage: React.FC = () => {
       return;
     }
 
+    const dedupConfig = antiDedupService.buildFfmpegDedupConfig({
+      enabled: true,
+      zoomBreathing,
+      filmGrain,
+      lightReconstruction,
+      pipOverlay,
+      mirrorFlip,
+      audioEqShift: true,
+      metaDataReset: true,
+    });
+
     setIsPublishing(true);
     setPublishProgress(10);
     setPlatforms(prev =>
@@ -173,7 +197,7 @@ export const ExportHubPage: React.FC = () => {
           setPlatforms(pList =>
             pList.map(p => (p.enabled && p.status !== '未绑定' ? { ...p, status: '已发布' } : p))
           );
-          notify.success(`消重指纹重构完成 (${exportResolution.toUpperCase()})！全网 ${enabledPlatforms.length} 个平台矩阵一键分发成功！`);
+          notify.success(`消重指纹重构完成 (${exportResolution.toUpperCase()})！应用 ${dedupConfig.summaryDesc.length} 级消重矩阵，全网 ${enabledPlatforms.length} 个平台矩阵分发成功！`);
           return 100;
         }
         return prev + 30;
