@@ -6,6 +6,7 @@ import {
   preloadProjectsPage,
   preloadProjectEditPage,
   preloadProjectDetailPage,
+  preloadWorkspacePage,
   preloadAIVideoEditorPage,
   preloadSettingsPage,
 } from './route-preload';
@@ -24,6 +25,7 @@ describe('route preload functions', () => {
       preloadProjectsPage(),
       preloadProjectEditPage(),
       preloadProjectDetailPage(),
+      preloadWorkspacePage(),
       preloadAIVideoEditorPage(),
       preloadSettingsPage(),
     ];

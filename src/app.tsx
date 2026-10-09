@@ -26,11 +26,8 @@ const ScriptDetail = lazy(loadScriptDetail);
 const ScriptStudio = lazy(loadScriptStudio);
 const AssetHub = lazy(loadAssetHub);
 const ExportHub = lazy(loadExportHub);
-// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-explicit-any
-const WorkspacePage: React.LazyExoticComponent<React.ComponentType<unknown>> = lazy(async () => {
-  const mod = await import('./pages/workspace/index');
-  return { default: (mod as unknown as { default: React.ComponentType<unknown> }).default };
-});
+const loadWorkspace = () => import('./pages/workspace/index');
+const WorkspacePage = lazy(loadWorkspace);
 const Settings = lazy(loadSettings);
 const Understanding = lazy(loadUnderstanding);
 

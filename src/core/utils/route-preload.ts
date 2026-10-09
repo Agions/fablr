@@ -20,8 +20,10 @@ export const preloadProjectEditPage = (): Promise<unknown> =>
 export const preloadProjectDetailPage = (): Promise<unknown> =>
   runOnce('page:project-detail', () => import('../../pages/project-detail/index'));
 
-export const preloadAIVideoEditorPage = (): Promise<unknown> =>
-  runOnce('page:ai-video-editor', () => import('../../pages/workspace/index'));
+export const preloadWorkspacePage = (): Promise<unknown> =>
+  runOnce('page:workspace', () => import('../../pages/workspace/index'));
+
+export const preloadAIVideoEditorPage = preloadWorkspacePage;
 
 export const preloadSettingsPage = (): Promise<unknown> =>
   runOnce('page:settings', () => import('../../pages/settings/index'));

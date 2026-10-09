@@ -4,7 +4,7 @@
 import React from 'react';
 import type { ScriptData } from '@/types';
 import { X } from 'lucide-react';
-import { COMMENTARY_STYLES } from '../edit-step/script-config';
+import { COMMENTARY_STYLES } from '../shared/script-config';
 import styles from './../edit-step/script-writing.module.less';
 
 interface ScriptPreviewModalProps {

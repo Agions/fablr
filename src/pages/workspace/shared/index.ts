@@ -36,3 +36,9 @@ export {
   type SynthesizeConfig,
   DEFAULT_SYNTHESIZE_CONFIG,
 } from './compose-config';
+export {
+  SCRIPT_STYLES,
+  COMMENTARY_STYLES,
+  SCRIPT_LENGTHS,
+  type ScriptGenerateProps,
+} from './script-config';

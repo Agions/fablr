@@ -10,7 +10,7 @@
 import React from 'react';
 import { ChevronDown } from 'lucide-react';
 import styles from './../edit-step/script-writing.module.less';
-import { SCRIPT_STYLES, SCRIPT_LENGTHS } from '../edit-step/script-config';
+import { SCRIPT_STYLES, SCRIPT_LENGTHS } from '../shared/script-config';
 
 // ============================================
 // 类型定义

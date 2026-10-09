@@ -10,7 +10,7 @@
 import React from 'react';
 import { Zap } from 'lucide-react';
 import styles from './../edit-step/script-writing.module.less';
-import { COMMENTARY_STYLES } from '../edit-step/script-config';
+import { COMMENTARY_STYLES } from '../shared/script-config';
 
 // ============================================
 // 类型定义

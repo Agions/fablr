@@ -4,9 +4,19 @@
  * 模式: 1 hook + 1 .reducer.ts + createAutoSetters + Updater<T>
  */
 import type { ScriptSegment } from '@/types';
-import type { ExportSettingsState } from '../export-settings';
 import type { Updater } from '@/shared/hooks/use-auto-setters';
 import { genericUpdateReducer } from '@/shared/hooks/use-auto-setters';
+
+export type TransitionType = 'none' | 'fade' | 'dissolve' | 'wipe' | 'slide';
+
+export interface ExportSettingsState {
+  videoQuality: string;
+  exportFormat: string;
+  transitionType: TransitionType;
+  transitionDuration: number;
+  audioVolume: number;
+  useSubtitles: boolean;
+}
 
 export interface VideoEditorPageState {
   // player (3 — 保留丢弃 setter 兼容原 API)
