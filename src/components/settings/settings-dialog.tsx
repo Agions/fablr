@@ -22,7 +22,7 @@ import { ExportSettings } from './export-settings';
 import { AI_MODELS } from '@/core/config/ai-models-config';
 import type { ModelProvider } from '@/types';
 import { notify } from '@/shared';
-import { validateApiKey } from '@/core/services/providers/api-key-service';
+import { validateApiKey } from '@/core/services/providers/api-key-validator';
 import { useSecureApiKeys } from '@/hooks/use-secure-api-keys';
 
 interface SettingsDialogProps {

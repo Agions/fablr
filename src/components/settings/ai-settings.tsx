@@ -8,7 +8,7 @@ import { memo, useState } from 'react';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
 import { CheckCircle2, XCircle, Loader2 } from 'lucide-react';
-import { validateApiKey } from '@/core/services/providers/api-key-service';
+import { validateApiKey } from '@/core/services/providers/api-key-validator';
 import { AI_MODELS } from '@/core/config/ai-models-config';
 import type { ModelProvider, AIModel } from '@/types';
 

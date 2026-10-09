@@ -4,7 +4,7 @@ import {
   initialVideoSelectorState,
   type VideoSelectorState,
   type VideoSelectorAction,
-} from '../video-selector-reducer';
+} from './video-selector-reducer';
 import type { VideoMetadata } from '@/core/video';
 
 const sampleMetadata: VideoMetadata = {

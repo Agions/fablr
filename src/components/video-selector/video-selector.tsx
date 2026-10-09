@@ -15,7 +15,7 @@ import { VIDEO_EXTENSIONS } from '@/shared/constants';
 import {
   videoSelectorReducer,
   initialVideoSelectorState,
-} from '../video-selector-reducer';
+} from './video-selector-reducer';
 import styles from './video-selector.module.less';
 
 interface VideoSelectorProps {
