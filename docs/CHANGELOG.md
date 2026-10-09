@@ -3,11 +3,11 @@
 ## v2.3.0 (2026-08) — 现代工业级架构与 Monorepo 拆分升级
 
 ### 🚀 架构重大重构
-- **Monorepo Packages 架构拆分**：
-  - `@fablr/types`：系统全域强类型定义与契约层；
-  - `@fablr/utils`：通用字符串、格式化与平台辅助工具库；
-  - `@fablr/core`：核心业务逻辑、`AtomicProjectFileDriver` 防竞态文件写入驱动、智能更新服务；
-  - `@fablr/ui`：基于 Canvas + RAF 硬件加速的 `VirtualTimelineCanvas` 虚拟化时间轴及工业级组件。
+- **清晰模块化分层架构升级**：
+  - `src/types`：系统全域强类型定义与契约层；
+  - `src/shared`：通用工具、格式化与平台辅助工具库；
+  - `src/core`：核心业务逻辑、`AtomicProjectFileDriver` 防竞态文件写入驱动、智能更新服务；
+  - `src/components`：硬件加速时间轴及工业级工坊组件。
 - **原子防竞态写入保障**：`AtomicProjectFileDriver` 基于 Promise 队列与热内存快照，彻底杜绝并发写入冲突与数据损坏。
 - **客户端智能版本检测**：集成国内镜像加速、SemVer 比对与 macOS/Windows/Linux 专属安装包自动匹配。
 

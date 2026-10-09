@@ -24,10 +24,6 @@
     "incremental": true,
     "tsBuildInfoFile": "./node_modules/.cache/tsconfig.tsbuildinfo",
     "paths": {
-      "@fablr/types": ["./packages/types/src/index.ts"],
-      "@fablr/utils": ["./packages/utils/src/index.ts"],
-      "@fablr/core": ["./packages/core/src/index.ts"],
-      "@fablr/ui": ["./packages/ui/src/index.ts"],
       "@/*": ["./src/*"],
       "@/types/*": ["./src/types/*"],
       "@/core/*": ["./src/core/*"],

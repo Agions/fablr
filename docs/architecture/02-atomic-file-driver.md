@@ -14,7 +14,7 @@
 
 ## 2. 核心架构与队列模型
 
-`AtomicProjectFileDriver`（位于 `@fablr/core`）采用 **Promise 链式排队 + 热内存双缓冲快照 + 原子写入重命名** 三重保障：
+`AtomicProjectFileDriver`（位于 `src/core/services/project/atomic-file-driver.ts`）采用 **Promise 链式排队 + 热内存双缓冲快照 + 原子写入重命名** 三重保障：
 
 ```mermaid
 graph TD

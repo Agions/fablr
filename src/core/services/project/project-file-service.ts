@@ -9,7 +9,7 @@ import { normalizeProjectId, buildProjectIdCandidates } from '@/core/utils/proje
 import { logger } from '@/shared/utils/logging';
 import { getConfigDir } from '@/core/utils/config-dir';
 import { AppError } from '@/core/errors';
-import { atomicFileDriver } from '@fablr/core';
+import { atomicFileDriver } from './atomic-file-driver';
 
 const errMsg = (err: unknown): string => (err instanceof Error ? err.message : String(err));
 

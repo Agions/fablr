@@ -35,3 +35,7 @@ export { subtitleService, SubtitleService } from './subtitle/subtitle-service';
 // 视频特效 & 信号（video/ 子目录）
 export { videoEffectService, VideoEffectService } from './video/video-effect-service';
 export { detectEmotionPeaks, calculateEmotionScore } from './video/emotion-detector';
+
+// 项目与升级服务
+export { atomicFileDriver, AtomicProjectFileDriver } from './project/atomic-file-driver';
+export { updaterService, UpdaterService, detectHostPlatform, findMatchingAsset, compareSemVer } from './updater/updater-service';

@@ -48,9 +48,8 @@ graph TD
         WS --> EH[4. 消重发布工坊 Export Hub]:::client
     end
 
-    subgraph 核心服务与驱动 [@fablr/core & @fablr/ui]
+    subgraph 核心服务与驱动 [src/core & src/shared]
         AFD[AtomicProjectFileDriver 原子防竞态持久化]:::core
-        VTC[VirtualTimelineCanvas 硬件加速时间轴]:::core
         MAP[Multi-Agent Drama Pipeline]:::core
         US[UpdaterService 智能版本检测]:::core
     end
@@ -64,11 +63,10 @@ graph TD
 
     AH -.-> AFD
     SS -.-> MAP
-    WS -.-> VTC
+    WS -.-> RUST
     EH -.-> DRAFT
     AFD --> RUST
     MAP --> RUST
-    VTC --> RUST
     RUST --> FFMPEG
     RUST --> WHISPER
 ```
@@ -79,7 +77,7 @@ graph TD
 | :--- | :--- | :--- |
 | **桌面运行时** | **Tauri 2 + Rust** | 原生轻量化容器，安装包仅 ~15MB，内存占用极低，跨 macOS/Windows/Linux 统一。 |
 | **前端应用** | **React 18 + Vite** | 组件化高度解耦，Zustand 状态机，CSS Modules 黑曜石工业风。 |
-| **Monorepo 架构** | **Turborepo + pnpm** | `@fablr/types` (类型契约) + `@fablr/utils` (基础工具) + `@fablr/core` (领域服务) + `@fablr/ui` (高性能组件)。 |
+| **工程架构** | **模块化分层 (Modular Clean Architecture)** | `src/types` (全域类型契约) + `src/shared` (共享工具) + `src/core` (领域核心服务) + `src/components` (组件)。 |
 | **音视频与 AI** | **FFmpeg + faster-whisper** | 本地硬件加速编解码、ASR 离线转写，多 Agent 大模型流式剧本研磨。 |
 | **草稿与分发** | **CapCut Draft Reverse** | 逆向直接生成剪映全轨工程与 5 级消重参数，1 秒无损导入二次精剪。 |
 

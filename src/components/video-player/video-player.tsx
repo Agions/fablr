@@ -12,7 +12,7 @@ import {
 import {
   videoPlayerReducer,
   initialVideoPlayerState,
-} from '../video-player-reducer';
+} from './video-player-reducer';
 import { useVideoKeyboardShortcuts } from '@/hooks/use-video-keyboard-shortcuts';
 import styles from '././video-player.module.less';
 

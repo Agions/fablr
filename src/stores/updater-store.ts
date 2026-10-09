@@ -5,9 +5,9 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { AppUpdateInfo, UpdateCheckStatus, AutoCheckFrequency } from '@fablr/types';
-import { updaterService } from '@fablr/core';
-import { notify } from '@fablr/utils';
+import type { AppUpdateInfo, UpdateCheckStatus, AutoCheckFrequency } from '@/types';
+import { updaterService } from '@/core/services/updater/updater-service';
+import { notify } from '@/shared';
 
 export interface UpdaterState {
   status: UpdateCheckStatus;

@@ -31,7 +31,7 @@ export const DRAMA_GENRE_PROMPTS: Record<string, GenrePromptConfig> = {
 
 ## 3. 自定义 TTS 配音引擎扩展
 
-Fablr 默认内置 Edge-TTS 与本地 TTS 引擎，若需对接自定义语音合成提供商（如 CosyVoice / ChatTTS），可在 `@fablr/core` 中的 `TTSService` 实现统一的 `ITTSEngine` 接口：
+Fablr 默认内置 Edge-TTS 与本地 TTS 引擎，若需对接自定义语音合成提供商（如 CosyVoice / ChatTTS），可在 `src/core/services/ai/voice-synthesis-service.ts` 中实现统一的接口：
 
 ```typescript
 export interface ITTSEngine {

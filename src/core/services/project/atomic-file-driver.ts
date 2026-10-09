@@ -1,5 +1,5 @@
 /**
- * @fablr/core — AtomicProjectFileDriver (项目原子写入驱动与队列防竞态锁)
+ * AtomicProjectFileDriver (项目原子写入驱动与队列防竞态锁)
  *
  * 核心设计：
  * 1. 内存串行写队列 (Write-Ahead Promise Queue)，严格杜绝并发写入交叉冲突；
@@ -7,8 +7,8 @@
  * 3. 内存快照热缓存 (Snapshot Cache)，读取优先命中，避免频繁触发文件系统 I/O。
  */
 
-import { logger } from '@fablr/utils';
-import { AppError } from '../../../src/core/errors';
+import { logger } from '@/shared/utils/logging';
+import { AppError } from '@/core/errors';
 
 export type FileWriteTask<T = unknown> = {
   id: string;

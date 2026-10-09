@@ -15,4 +15,3 @@ export function estimateVoiceDuration(text: string, charsPerSec = 4): number {
   const clean = text.replace(/[^\u4e00-\u9fa5a-zA-Z0-9]/g, '');
   return Math.max(1, Math.round(clean.length / charsPerSec));
 }
-

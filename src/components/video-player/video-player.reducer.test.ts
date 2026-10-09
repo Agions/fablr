@@ -2,8 +2,8 @@
  * videoPlayerReducer 测试
  */
 import { describe, it, expect } from 'vitest';
-import { videoPlayerReducer, initialVideoPlayerState } from '../video-player-reducer';
-import type { VideoPlayerState } from '../video-player-reducer';
+import { videoPlayerReducer, initialVideoPlayerState } from './video-player-reducer';
+import type { VideoPlayerState } from './video-player-reducer';
 
 const makeState = (overrides?: Partial<VideoPlayerState>): VideoPlayerState => ({
   ...initialVideoPlayerState,

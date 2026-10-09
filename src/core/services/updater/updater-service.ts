@@ -1,5 +1,5 @@
 /**
- * @fablr/core — 客户端版本检查与更新服务 (UpdaterService 增强版)
+ * 客户端版本检查与更新服务 (UpdaterService 增强版)
  *
  * 核心优化特性：
  * 1. 国内 GitHub API 自动镜像加速与备用源轮询降级；
@@ -7,8 +7,8 @@
  * 3. 语义化版本 SemVer 深度比对。
  */
 
-import type { AppUpdateInfo, ReleaseAsset } from '@fablr/types';
-import { logger } from '@fablr/utils';
+import type { AppUpdateInfo, ReleaseAsset } from '@/types';
+import { logger } from '@/shared/utils/logging';
 
 export interface GitHubReleaseDto {
   tag_name: string;

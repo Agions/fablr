@@ -55,7 +55,7 @@ gantt
 
 ## 3. Canvas 虚拟化时间轴技术实现
 
-在包含上百个视频切片与高密度音频波形时，传统 DOM/SVG 渲染方案会导致严重的掉帧与内存暴涨。Fablr 采用自主研发的 `VirtualTimelineCanvas`（位于 `@fablr/ui`）：
+在包含上百个视频切片与高密度音频波形时，传统 DOM/SVG 渲染方案会导致严重的掉帧与内存暴涨。Fablr 采用高性能 Canvas 硬件加速渲染时间轴方案：
 
 ```mermaid
 graph TD

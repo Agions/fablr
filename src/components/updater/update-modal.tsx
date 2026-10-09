@@ -16,7 +16,7 @@ import {
   EyeOff,
 } from 'lucide-react';
 import { useUpdaterStore } from '@/stores/updater-store';
-import { updaterService, detectHostPlatform } from '@fablr/core';
+import { updaterService, detectHostPlatform } from '@/core/services/updater/updater-service';
 import { formatFileSize } from '@/shared';
 import styles from './update-modal.module.less';
 

@@ -1,5 +1,5 @@
 /**
- * @fablr/types — 客户端版本更新契约定义
+ * 客户端版本更新契约定义
  */
 
 export type UpdateCheckStatus =

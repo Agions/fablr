@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { AtomicProjectFileDriver, atomicFileDriver } from './atomic-file-driver';
+import { atomicFileDriver } from './atomic-file-driver';
 
 describe('AtomicProjectFileDriver', () => {
   beforeEach(() => {

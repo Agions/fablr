@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { formatScriptDuration, estimateVoiceDuration } from './time';
 
-describe('packages/utils time utilities', () => {
+describe('time utilities', () => {
   it('formats script duration accurately', () => {
     expect(formatScriptDuration(0)).toBe('0秒');
     expect(formatScriptDuration(45)).toBe('45秒');

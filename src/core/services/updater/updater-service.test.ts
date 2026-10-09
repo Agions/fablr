@@ -3,10 +3,9 @@ import {
   compareSemVer,
   detectHostPlatform,
   findMatchingAsset,
-  UpdaterService,
   updaterService,
 } from './updater-service';
-import type { ReleaseAsset } from '@fablr/types';
+import type { ReleaseAsset } from '@/types';
 
 describe('UpdaterService Enhanced Suite', () => {
   describe('compareSemVer', () => {
@@ -30,7 +29,7 @@ describe('UpdaterService Enhanced Suite', () => {
       expect(match?.name).toBe('Fablr_mac_arm64.dmg');
     });
 
-    it('should find matching asset for Windows', () => {
+  it('should find matching asset for Windows', () => {
       const assets: ReleaseAsset[] = [
         { name: 'fablr_setup.exe', browserDownloadUrl: 'http://exe', size: 100, contentType: 'app/exe' },
         { name: 'Fablr_mac_arm64.dmg', browserDownloadUrl: 'http://dmg', size: 100, contentType: 'app/dmg' },
@@ -79,7 +78,7 @@ describe('UpdaterService Enhanced Suite', () => {
         ],
       };
 
-      global.fetch = vi.fn().mockResolvedValue({
+      globalThis.fetch = vi.fn().mockResolvedValue({
         ok: true,
         json: async () => mockRelease,
       } as Response);
@@ -102,7 +101,7 @@ describe('UpdaterService Enhanced Suite', () => {
       };
 
       // 第一次失败，第二次成功
-      global.fetch = vi
+      globalThis.fetch = vi
         .fn()
         .mockRejectedValueOnce(new Error('Mirror 1 timeout'))
         .mockResolvedValueOnce({

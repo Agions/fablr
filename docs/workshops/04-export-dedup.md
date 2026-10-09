@@ -45,7 +45,7 @@ sequenceDiagram
     autonumber
     actor Creator as 创作者
     participant Hub as Export Hub 前端
-    participant Exporter as CapCutDraftExporter (@fablr/core)
+    participant Exporter as CapCutDraftExporter (src/core)
     participant FS as 本地文件系统 (Tauri FS)
     participant CapCut as 剪映 Desktop 客户端
 

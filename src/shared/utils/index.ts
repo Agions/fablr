@@ -4,6 +4,7 @@
 
 import { AppError } from '@/shared/errors';
 export * from './notify';
+export * from './time';
 
 // Time formatting & timestamps (used by timeline, video-player, etc.)
 export {

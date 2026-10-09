@@ -31,10 +31,6 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '@fablr/types': path.resolve(__dirname, './packages/types/src'),
-      '@fablr/utils': path.resolve(__dirname, './packages/utils/src'),
-      '@fablr/core': path.resolve(__dirname, './packages/core/src'),
-      '@fablr/ui': path.resolve(__dirname, './packages/ui/src'),
       '@/': path.resolve(__dirname, './src'),
       '@/types': path.resolve(__dirname, './src/types'),
       '@/core': path.resolve(__dirname, './src/core'),

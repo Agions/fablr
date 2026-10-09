@@ -11,3 +11,4 @@ export * from './analysis';
 export * from './export';
 export * from './timeline';
 export * from './subtitle';
+export * from './updater';

@@ -41,5 +41,5 @@ npm run test:run
 npm run test:ci
 ```
 
-- 核心业务逻辑（`@fablr/core` 中的 `AtomicProjectFileDriver`、`UpdaterService`、`drama-agents`）测试覆盖率达 **90%+**；
+- 核心业务逻辑（`src/core` 中的 `AtomicProjectFileDriver`、`UpdaterService`、`drama-agents`）测试覆盖率达 **90%+**；
 - 状态机（`updater-store`、`editor-store`）均具备完备的边界条件与异步并发测试用例。

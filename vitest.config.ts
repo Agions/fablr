@@ -11,7 +11,6 @@ export default defineConfig({
     setupFiles: ['./src/test/setup.ts'],
     include: [
       'src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}',
-      'packages/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}',
     ],
     exclude: ['node_modules', 'dist', '.git', 'src/test/**/fixtures/**'],
     coverage: {
@@ -19,7 +18,7 @@ export default defineConfig({
       reporter: ['text', 'json', 'html'],
       reportsDirectory: './coverage',
       exclude: ['node_modules', 'src/test', '**/*.d.ts', '**/*.config.*', '**/vite-env.d.ts'],
-      include: ['src/**/*.{ts,tsx}', 'packages/**/*.{ts,tsx}'],
+      include: ['src/**/*.{ts,tsx}'],
       thresholds: {
         // 覆盖率梯度（5% 步进，原 5->15->30->50->65->80 6 步跨度过大，CI 频繁红）
         // 实际覆盖率（2026-08-06，PR-M2.11 完成后）：
@@ -102,10 +101,6 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '@fablr/types': path.resolve(__dirname, './packages/types/src'),
-      '@fablr/utils': path.resolve(__dirname, './packages/utils/src'),
-      '@fablr/core': path.resolve(__dirname, './packages/core/src'),
-      '@fablr/ui': path.resolve(__dirname, './packages/ui/src'),
       '@/': path.resolve(__dirname, './src'),
       '@/types': path.resolve(__dirname, './src/types'),
       '@/core': path.resolve(__dirname, './src/core'),
