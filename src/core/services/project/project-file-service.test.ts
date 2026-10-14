@@ -1,36 +1,32 @@
 /**
  * Project File Service — 单元测试
  *
- * 覆盖（PR-M2.1a）：
- * - saveProjectToFile: 成功路径 / apiKey 清除 / 序列化空 / 无效 ID
- * - loadProjectWithRetry: 成功 / 重试指数退避 / 全部失败
- * - listProjects: Rust 路径 / 兜底路径 / 异常转换
- * - deleteProject: 成功 / 失败 / 空 ID
+ * 覆盖：
+ * - saveProjectToFile: 成功保存 (SQLite + JSON) / apiKey 清除 / 序列化空 / 无效 ID / 备份路径
+ * - loadProjectWithRetry: SQLite 优先 / 文件兜底 / 重试指数退避 / 全部失败
+ * - listProjects: SQLite 优先 / 文件扫描兜底 / 异常转换
+ * - deleteProject: 成功 (SQLite + 文件删除) / 失败 / 空 ID
  * - PROJECTS_CHANGED_EVENT 事件触发
- *
- * 注：normalizedListedProject 是私有函数（不导出），通过 listProjects 间接验证。
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 // ── Mocks ─────────────────────────────────────────────────────────────────────
 
-const mockTauri = {
-  saveProjectFile: vi.fn(),
-  loadProjectFile: vi.fn(),
-  listProjectFiles: vi.fn(),
-  deleteProjectFile: vi.fn(),
-  checkAppDataDirectory: vi.fn(),
-  listAppDataFiles: vi.fn(),
+const mockSqliteProject = {
+  save: vi.fn(),
+  load: vi.fn(),
+  list: vi.fn(),
+  delete: vi.fn(),
+  create: vi.fn(),
 };
 
-vi.mock('@/core/tauri', () => ({
-  tauri: {
-    saveProjectFile: (...args: unknown[]) => mockTauri.saveProjectFile(...args),
-    loadProjectFile: (...args: unknown[]) => mockTauri.loadProjectFile(...args),
-    listProjectFiles: (...args: unknown[]) => mockTauri.listProjectFiles(...args),
-    deleteProjectFile: (...args: unknown[]) => mockTauri.deleteProjectFile(...args),
-    checkAppDataDirectory: (...args: unknown[]) => mockTauri.checkAppDataDirectory(...args),
-    listAppDataFiles: (...args: unknown[]) => mockTauri.listAppDataFiles(...args),
+vi.mock('@/core/tauri/methods/project', () => ({
+  project: {
+    save: (...args: unknown[]) => mockSqliteProject.save(...args),
+    load: (...args: unknown[]) => mockSqliteProject.load(...args),
+    list: (...args: unknown[]) => mockSqliteProject.list(...args),
+    delete: (...args: unknown[]) => mockSqliteProject.delete(...args),
+    create: (...args: unknown[]) => mockSqliteProject.create(...args),
   },
 }));
 
@@ -39,6 +35,8 @@ const mockFs = {
   mkdir: vi.fn(),
   readTextFile: vi.fn(),
   writeTextFile: vi.fn(),
+  readDir: vi.fn(),
+  remove: vi.fn(),
 };
 
 vi.mock('@tauri-apps/plugin-fs', () => ({
@@ -46,6 +44,8 @@ vi.mock('@tauri-apps/plugin-fs', () => ({
   mkdir: (...args: unknown[]) => mockFs.mkdir(...args),
   readTextFile: (...args: unknown[]) => mockFs.readTextFile(...args),
   writeTextFile: (...args: unknown[]) => mockFs.writeTextFile(...args),
+  readDir: (...args: unknown[]) => mockFs.readDir(...args),
+  remove: (...args: unknown[]) => mockFs.remove(...args),
   BaseDirectory: { AppData: 1, AppConfig: 2 },
 }));
 
@@ -82,16 +82,24 @@ let installedHandler: EventListener | null = null;
 beforeEach(() => {
   vi.resetAllMocks();
   events.length = 0;
-  // 监听 PROJECTS_CHANGED_EVENT 事件
   installedHandler = e => {
     events.push(e);
   };
   window.addEventListener(PROJECTS_CHANGED_EVENT, installedHandler);
   mockGetConfigDir.mockResolvedValue('/tmp/config/');
-  // 默认：Rust 写文件成功
-  mockTauri.saveProjectFile.mockResolvedValue(undefined);
-  // 默认：目录检查成功（Rust 路径）
-  mockTauri.checkAppDataDirectory.mockResolvedValue('/tmp/data');
+
+  // 默认：文件系统操作正常
+  mockFs.exists.mockResolvedValue(true);
+  mockFs.mkdir.mockResolvedValue(undefined);
+  mockFs.writeTextFile.mockResolvedValue(undefined);
+  mockFs.readDir.mockResolvedValue([]);
+  mockFs.remove.mockResolvedValue(undefined);
+
+  // 默认：SQLite 正常
+  mockSqliteProject.save.mockResolvedValue(undefined);
+  mockSqliteProject.load.mockResolvedValue(null);
+  mockSqliteProject.list.mockResolvedValue([]);
+  mockSqliteProject.delete.mockResolvedValue(undefined);
 });
 
 afterEach(() => {
@@ -104,12 +112,19 @@ afterEach(() => {
 // ── saveProjectToFile ─────────────────────────────────────────────────────────
 
 describe('saveProjectToFile', () => {
-  it('writes project via Rust tauri API and emits event', async () => {
+  it('writes project via SQLite and writeTextFile, then emits event', async () => {
     await saveProjectToFile(validProjectId, sampleProject);
 
-    expect(mockTauri.saveProjectFile).toHaveBeenCalledWith(
-      validProjectId,
-      expect.stringContaining('"id": ' + JSON.stringify(validProjectId))
+    expect(mockSqliteProject.save).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: validProjectId,
+        name: '测试项目',
+      })
+    );
+    expect(mockFs.writeTextFile).toHaveBeenCalledWith(
+      `fablr/${validProjectId}.json`,
+      expect.stringContaining('"id": ' + JSON.stringify(validProjectId)),
+      expect.objectContaining({ baseDir: 1 })
     );
     expect(events.length).toBe(1);
   });
@@ -122,32 +137,17 @@ describe('saveProjectToFile', () => {
 
     await saveProjectToFile(validProjectId, projectWithKey);
 
-    const serialized = mockTauri.saveProjectFile.mock.calls[0][1] as string;
+    const serialized = mockFs.writeTextFile.mock.calls[0][1] as string;
     expect(serialized).not.toContain('secret-key');
     expect(serialized).toContain('"model": "gpt-4"');
   });
 
   it('throws AppError on empty project ID', async () => {
     await expect(saveProjectToFile('', sampleProject)).rejects.toThrow(/无效的项目数据/);
-    expect(mockTauri.saveProjectFile).not.toHaveBeenCalled();
+    expect(mockFs.writeTextFile).not.toHaveBeenCalled();
   });
 
-  it('falls back to JS writeTextFile when Rust save fails', async () => {
-    mockTauri.saveProjectFile.mockRejectedValue(new Error('rust fail'));
-    mockFs.writeTextFile.mockResolvedValue(undefined);
-
-    await saveProjectToFile(validProjectId, sampleProject);
-
-    expect(mockFs.writeTextFile).toHaveBeenCalledWith(
-      `fablr/${validProjectId}.json`,
-      expect.any(String),
-      expect.objectContaining({ baseDir: 1 }) // BaseDirectory.AppData
-    );
-    expect(events.length).toBe(1);
-  });
-
-  it('uses backup path when primary writeTextFile also fails', async () => {
-    mockTauri.saveProjectFile.mockRejectedValue(new Error('rust fail'));
+  it('uses backup path when primary writeTextFile fails', async () => {
     mockFs.writeTextFile
       .mockRejectedValueOnce(new Error('primary fail'))
       .mockResolvedValueOnce(undefined); // backup path succeeds
@@ -156,201 +156,188 @@ describe('saveProjectToFile', () => {
 
     expect(mockFs.writeTextFile).toHaveBeenCalledTimes(2);
     expect(mockFs.writeTextFile.mock.calls[1][0]).toContain(validProjectId);
-    // 备份路径会触发 2 次 emit（catch 内 + 末尾），这是已知行为。
     expect(events.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('still writes to file if SQLite save fails', async () => {
+    mockSqliteProject.save.mockRejectedValueOnce(new Error('sqlite error'));
+
+    await saveProjectToFile(validProjectId, sampleProject);
+
+    expect(mockFs.writeTextFile).toHaveBeenCalled();
+    expect(events.length).toBe(1);
   });
 });
 
 // ── loadProjectWithRetry ──────────────────────────────────────────────────────
 
 describe('loadProjectWithRetry', () => {
-  it('returns parsed content on first success', async () => {
-    const data = { id: validProjectId, name: 'loaded' };
-    // listProjectFiles 兜底可能调用，这里无所谓；loadProjectFile 直接成功
-    mockTauri.loadProjectFile.mockResolvedValue(JSON.stringify(data));
+  it('returns data directly from SQLite when available', async () => {
+    const sqliteRecord = {
+      id: validProjectId,
+      name: 'SQLite项目',
+      videoPath: '/path/video.mp4',
+      subtitlePath: null,
+      intent: {},
+      createdAt: '2026-01-01T00:00:00Z',
+      updatedAt: '2026-01-02T00:00:00Z',
+      latestJob: { phase: 'rendering' },
+    };
+    mockSqliteProject.load.mockResolvedValue(sqliteRecord);
 
-    const result = await loadProjectWithRetry<typeof data>(validProjectId);
+    const result = await loadProjectWithRetry(validProjectId);
 
-    expect(result).toEqual(data);
-    expect(mockTauri.loadProjectFile).toHaveBeenCalled();
+    expect(result.id).toBe(validProjectId);
+    expect(result.name).toBe('SQLite项目');
+    expect(result.status).toBe('completed');
+    expect(mockSqliteProject.load).toHaveBeenCalledWith(validProjectId);
+  });
+
+  it('falls back to JSON file when SQLite load returns null', async () => {
+    mockSqliteProject.load.mockResolvedValue(null);
+    const fileData = { id: validProjectId, name: 'File项目' };
+    mockFs.exists.mockResolvedValue(true);
+    mockFs.readTextFile.mockResolvedValue(JSON.stringify(fileData));
+
+    const result = await loadProjectWithRetry(validProjectId);
+
+    expect(result).toEqual(fileData);
+    expect(mockFs.readTextFile).toHaveBeenCalledWith(
+      `fablr/${validProjectId}.json`,
+      expect.objectContaining({ baseDir: 1 })
+    );
   });
 
   it('retries with exponential backoff on failure', async () => {
-    mockTauri.loadProjectFile.mockRejectedValue(new Error('not found yet'));
+    mockSqliteProject.load.mockRejectedValue(new Error('db error'));
     mockFs.exists.mockResolvedValue(false);
-    mockTauri.checkAppDataDirectory.mockResolvedValue('/tmp/data');
 
     await expect(
-      loadProjectWithRetry(validProjectId, { retries: 2, retryDelayMs: 100 })
+      loadProjectWithRetry(validProjectId, { retries: 2, retryDelayMs: 10 })
     ).rejects.toThrow();
 
-    // attempts = retries + 1 = 3
-    expect(mockTauri.loadProjectFile).toHaveBeenCalledTimes(3);
+    expect(mockSqliteProject.load).toHaveBeenCalledTimes(3);
   });
 
   it('throws lastError after exhausting retries', async () => {
-    // 始终让 Rust + JS 兜底都失败，最终抛出最近一次错误。
-    mockTauri.loadProjectFile.mockRejectedValue(new Error('rust permanent fail'));
+    mockSqliteProject.load.mockRejectedValue(new Error('permanent failure'));
     mockFs.exists.mockResolvedValue(false);
-    mockTauri.checkAppDataDirectory.mockResolvedValue('/tmp/data');
 
-    await expect(loadProjectWithRetry(validProjectId, { retries: 1 })).rejects.toThrow();
-    // 至少调用 1 次（次数取决于内部 retry + 兜底分支）
-    expect(mockTauri.loadProjectFile).toHaveBeenCalled();
+    await expect(loadProjectWithRetry(validProjectId, { retries: 1, retryDelayMs: 5 })).rejects.toThrow();
   });
 });
 
 // ── listProjects ──────────────────────────────────────────────────────────────
 
 describe('listProjects', () => {
-  it('returns normalized list from Rust tauri.listProjectFiles', async () => {
-    const raw = [
-      { id: 'p1', name: '项目 1', updatedAt: '2026-01-01T00:00:00Z' },
-      { id: 'p2', name: '项目 2', updatedAt: '2026-01-02T00:00:00Z' },
+  it('returns list from SQLite when available', async () => {
+    const sqliteList = [
+      { id: 'p1', name: '项目 1', updatedAt: '2026-01-01T00:00:00Z', createdAt: '2026-01-01T00:00:00Z', videoPath: 'v1.mp4' },
+      { id: 'p2', name: '项目 2', updatedAt: '2026-01-02T00:00:00Z', createdAt: '2026-01-02T00:00:00Z', videoPath: 'v2.mp4' },
     ];
-    mockTauri.listProjectFiles.mockResolvedValue(raw);
+    mockSqliteProject.list.mockResolvedValue(sqliteList);
 
     const projects = await listProjects();
 
     expect(projects).toHaveLength(2);
     expect(projects[0].id).toBe('p1');
     expect(projects[1].name).toBe('项目 2');
-    expect(mockTauri.listAppDataFiles).not.toHaveBeenCalled();
+    expect(mockFs.readDir).not.toHaveBeenCalled();
   });
 
-  it('fills empty name with default "项目 <id>" fallback', async () => {
-    mockTauri.listProjectFiles.mockResolvedValue([
-      { id: 'abc12345-xyz', updatedAt: '2026-01-01T00:00:00Z' },
+  it('falls back to file scanning when SQLite returns empty list', async () => {
+    mockSqliteProject.list.mockResolvedValue([]);
+    mockFs.readDir.mockResolvedValue([
+      { isFile: true, name: 'p1.json' },
+      { isFile: true, name: 'p2.json' },
     ]);
-
-    const projects = await listProjects();
-
-    expect(projects[0].name).toBe('项目 abc12345');
-  });
-
-  it('fills missing updatedAt with createdAt or current time', async () => {
-    mockTauri.listProjectFiles.mockResolvedValue([
-      { id: 'p1', name: 'P1', createdAt: '2026-01-01T00:00:00Z' /* updatedAt missing */ },
-    ]);
-
-    const projects = await listProjects();
-
-    expect(projects[0].updatedAt).toBe('2026-01-01T00:00:00Z');
-  });
-
-  it('falls back to JS file scan when Rust returns empty', async () => {
-    mockTauri.listProjectFiles.mockResolvedValue([]); // empty → fallback
-    mockTauri.listAppDataFiles.mockResolvedValue(['p1.json', 'p2.json']);
-    mockTauri.loadProjectFile
-      .mockRejectedValueOnce(new Error('rust miss'))
-      .mockImplementationOnce(async (_id: string) => JSON.stringify({ id: 'p2', name: 'P2' }));
-
-    const projects = await listProjects();
-
-    expect(mockTauri.listAppDataFiles).toHaveBeenCalledWith('fablr');
-    expect(projects.length).toBeGreaterThanOrEqual(0);
-  });
-
-  it('filters out non-record entries from raw list', async () => {
-    mockTauri.listProjectFiles.mockResolvedValue([
-      null,
-      'not-an-object',
-      { id: 'p1', name: 'Good', updatedAt: '2026-01-01T00:00:00Z' },
-    ]);
-
-    const projects = await listProjects();
-
-    expect(projects).toHaveLength(1);
-    expect(projects[0].id).toBe('p1');
-  });
-
-  it('falls back to JS file scan when Rust throws (not just empty)', async () => {
-    mockTauri.listProjectFiles.mockRejectedValue(new Error('rust boom'));
-    mockTauri.listAppDataFiles.mockResolvedValue(['p1.json']);
     mockFs.exists.mockResolvedValue(true);
-    mockFs.readTextFile.mockResolvedValue(JSON.stringify({ id: 'p1', name: 'P1', updatedAt: 'x' }));
+    mockFs.readTextFile
+      .mockResolvedValueOnce(JSON.stringify({ id: 'p1', name: '项目 1' }))
+      .mockResolvedValueOnce(JSON.stringify({ id: 'p2', name: '项目 2' }));
 
     const projects = await listProjects();
 
-    expect(mockTauri.listAppDataFiles).toHaveBeenCalledWith('fablr');
-    expect(projects).toHaveLength(1);
-    expect(projects[0].id).toBe('p1');
+    expect(mockFs.readDir).toHaveBeenCalledWith('fablr', expect.objectContaining({ baseDir: 1 }));
+    expect(projects).toHaveLength(2);
   });
 
-  it('returns [] from fallback when listAppDataFiles returns empty array', async () => {
-    mockTauri.listProjectFiles.mockRejectedValue(new Error('rust boom'));
-    mockTauri.listAppDataFiles.mockResolvedValue([]);
+  it('filters out non-record and invalid files during file scan', async () => {
+    mockSqliteProject.list.mockResolvedValue([]);
+    mockFs.readDir.mockResolvedValue([
+      { isFile: true, name: 'corrupted.json' },
+      { isFile: true, name: 'good.json' },
+    ]);
+    mockFs.exists.mockResolvedValue(true);
+    mockFs.readTextFile
+      .mockResolvedValueOnce('null')
+      .mockResolvedValueOnce(JSON.stringify({ id: 'good', name: '好项目' }));
 
     const projects = await listProjects();
+
+    expect(projects).toHaveLength(1);
+    expect(projects[0].id).toBe('good');
+  });
+
+  it('returns empty array when scanning directory has no json files', async () => {
+    mockSqliteProject.list.mockResolvedValue([]);
+    mockFs.readDir.mockResolvedValue([
+      { isFile: true, name: 'readme.txt' },
+      { isFile: false, name: 'subfolder' },
+    ]);
+
+    const projects = await listProjects();
+
     expect(projects).toEqual([]);
   });
 
-  it('skips non-.json files when scanning app data dir', async () => {
-    mockTauri.listProjectFiles.mockRejectedValue(new Error('rust boom'));
-    mockTauri.listAppDataFiles.mockResolvedValue(['readme.txt', 'data.json', 'image.png']);
-    mockFs.exists.mockResolvedValue(true);
-    mockFs.readTextFile.mockResolvedValue(
-      JSON.stringify({ id: 'data', name: 'Data', updatedAt: 'x' })
-    );
-
-    const projects = await listProjects();
-    expect(projects).toHaveLength(1);
-    expect(projects[0].id).toBe('data');
-    expect(mockFs.readTextFile).toHaveBeenCalledTimes(1);
-  });
-
-  it('rethrows when the outer try/catch in listProjects sees an error', async () => {
-    mockTauri.listProjectFiles.mockRejectedValue(new Error('rust boom'));
-    mockTauri.checkAppDataDirectory.mockRejectedValue(new Error('dir check fail'));
-    mockFs.exists.mockResolvedValue(false);
-    mockFs.mkdir.mockRejectedValue(new Error('mkdir denied'));
+  it('rethrows when ensureAppDataDir fails with unhandled error', async () => {
+    mockSqliteProject.list.mockRejectedValue(new Error('sqlite fail'));
+    mockFs.exists.mockRejectedValue(new Error('fs permission denied'));
 
     await expect(listProjects()).rejects.toThrow();
-  });
-});
-
-// ── ensureAppDataDir mkdir failure path ────────────────────────────────────────
-
-describe('ensureAppDataDir mkdir failure path', () => {
-  it('throws AppError when Rust check + JS mkdir both fail', async () => {
-    mockTauri.checkAppDataDirectory.mockRejectedValue(new Error('rust dir fail'));
-    mockFs.exists.mockResolvedValue(false);
-    mockFs.mkdir.mockRejectedValue(new Error('mkdir denied'));
-
-    await expect(saveProjectToFile(validProjectId, sampleProject)).rejects.toThrow(
-      /创建目录失败|APP_DIR/i
-    );
   });
 });
 
 // ── deleteProject ─────────────────────────────────────────────────────────────
 
 describe('deleteProject', () => {
-  it('deletes via Rust and emits event', async () => {
-    mockTauri.deleteProjectFile.mockResolvedValue(undefined);
+  it('deletes via SQLite and file remove, then emits event', async () => {
+    mockSqliteProject.delete.mockResolvedValue(undefined);
+    mockFs.remove.mockResolvedValue(undefined);
 
     const result = await deleteProject(validProjectId);
 
     expect(result).toBe(true);
-    expect(mockTauri.deleteProjectFile).toHaveBeenCalledWith(validProjectId);
+    expect(mockSqliteProject.delete).toHaveBeenCalledWith(validProjectId);
+    expect(mockFs.remove).toHaveBeenCalledWith(
+      `fablr/${validProjectId}.json`,
+      expect.objectContaining({ baseDir: 1 })
+    );
     expect(events.length).toBe(1);
   });
 
-  it('returns false on empty ID without calling Rust', async () => {
+  it('returns false on empty ID without calling SQLite or remove', async () => {
     const result = await deleteProject('');
 
     expect(result).toBe(false);
-    expect(mockTauri.deleteProjectFile).not.toHaveBeenCalled();
+    expect(mockSqliteProject.delete).not.toHaveBeenCalled();
+    expect(mockFs.remove).not.toHaveBeenCalled();
     expect(events.length).toBe(0);
   });
 
-  it('returns false when Rust delete throws', async () => {
-    mockTauri.deleteProjectFile.mockRejectedValue(new Error('disk fail'));
+  it('still succeeds deleting file even if SQLite delete throws', async () => {
+    mockSqliteProject.delete.mockRejectedValue(new Error('sqlite error'));
+    mockFs.remove.mockResolvedValue(undefined);
 
     const result = await deleteProject(validProjectId);
 
-    expect(result).toBe(false);
-    expect(events.length).toBe(0);
+    expect(result).toBe(true);
+    expect(mockFs.remove).toHaveBeenCalledWith(
+      `fablr/${validProjectId}.json`,
+      expect.objectContaining({ baseDir: 1 })
+    );
+    expect(events.length).toBe(1);
   });
 });
 

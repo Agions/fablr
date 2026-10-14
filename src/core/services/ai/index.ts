@@ -7,3 +7,5 @@ export * from './ai-service';
 export * from './script-service';
 export * from './vision-service';
 export * from './voice-synthesis-service';
+export * from './local-inference-service';
+export * from './hybrid-model-router';

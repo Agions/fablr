@@ -17,3 +17,4 @@ export * from './intent';
 export * from './assembly';
 export * from './platform';
 export * from './ssml';
+export * from './screenplay-ast';
