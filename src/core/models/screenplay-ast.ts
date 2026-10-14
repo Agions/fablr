@@ -47,6 +47,8 @@ export interface ScreenplaySceneBeat {
   emotion: ScreenplayEmotion;
   soundFx?: string;
   bgmSuggestion?: string;
+  audioPath?: string;
+  subtitleText?: string;
 }
 
 export interface DramaScreenplayIR {

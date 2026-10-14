@@ -28,3 +28,4 @@ export {
 export { videoProcessor, TauriVideoProcessor } from './tauri-video-processor';
 export * from './formatters';
 export * from './output-colors';
+export * from './deduplication-matrix';
