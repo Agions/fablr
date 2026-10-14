@@ -27,10 +27,12 @@ pub use commands::pipeline::{
     pipeline_start_phase,
 };
 pub use commands::render::{
-    export_video, generate_preview, render_autonomous_cut, transcode_with_crop,
+    export_jianying_draft, export_video, generate_preview, render_autonomous_cut, transcode_with_crop,
 };
 pub use commands::export_state::cancel_export;
-pub use commands::file_ops::{clean_temp_file, open_file, voice_discovery};
+pub use commands::file_ops::{
+    clean_temp_file, delete_file, get_file_size, open_file, read_text_file, voice_discovery,
+};
 pub use commands::platform::{list_platform_presets, platform_export, PlatformExportInput, PlatformExportResult};
 pub use commands::assembly::{assembly_kit_load, assembly_kit_save, AssemblyKitMeta, LoadedAssemblyKit};
 
@@ -79,9 +81,13 @@ pub fn run() {
             transcode_with_crop,
             generate_preview,
             export_video,
+            export_jianying_draft,
             cancel_export,
             clean_temp_file,
             open_file,
+            read_text_file,
+            delete_file,
+            get_file_size,
             voice_discovery,
             cut_video,
             mix_audio,

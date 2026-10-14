@@ -32,3 +32,10 @@ pub async fn render_autonomous_cut(
 pub async fn generate_preview(input: GeneratePreviewInput) -> Result<String, String> {
     media::render::generate_preview(input).await
 }
+
+#[tauri::command]
+pub fn export_jianying_draft(
+    input: media::render::JianYingProjectExportInput,
+) -> Result<media::render::JianYingDraftContent, String> {
+    Ok(media::render::generate_draft_content(&input))
+}

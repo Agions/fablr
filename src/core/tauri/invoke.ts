@@ -17,6 +17,7 @@ export const TauriCommand = {
   DETECT_SMART_SEGMENTS: 'detect_smart_segments',
 
   EXPORT_VIDEO: 'export_video',
+  EXPORT_JIANYING_DRAFT: 'export_jianying_draft',
   TRANSCODE_WITH_CROP: 'transcode_with_crop',
   AUTONOMOUS_RENDER: 'render_autonomous_cut',
   GENERATE_PREVIEW: 'generate_preview',

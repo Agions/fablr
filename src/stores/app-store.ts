@@ -97,17 +97,28 @@ export const useAppStore = createPersistedStore<AppState>({
   legacyName: 'StoryFab-app',
   devtoolsName: 'AppStore',
   storage: createJSONStorage(() => localStorage),
-  partialize: (state) => ({
-    theme: state.theme,
-    sidebarCollapsed: state.sidebarCollapsed,
-    userSettings: state.userSettings,
-    autoSave: state.autoSave,
-    // AI 设置持久化
-    aiSettings: {
-      selectedAIModel: state.aiSettings.selectedAIModel,
-      aiModelsSettings: state.aiSettings.aiModelsSettings,
-    },
-  }),
+  partialize: (state) => {
+    // 关键安全加固：杜绝敏感 apiKey 明文落入浏览器 localStorage
+    const sanitizedAiModelsSettings = Object.entries(state.aiSettings.aiModelsSettings).reduce(
+      (acc, [provider, settings]) => {
+        const { apiKey: _omittedKey, ...rest } = settings;
+        acc[provider as ModelProvider] = rest;
+        return acc;
+      },
+      {} as Record<ModelProvider, Omit<AIModelSettings, 'apiKey'>>
+    );
+
+    return {
+      theme: state.theme,
+      sidebarCollapsed: state.sidebarCollapsed,
+      userSettings: state.userSettings,
+      autoSave: state.autoSave,
+      aiSettings: {
+        selectedAIModel: state.aiSettings.selectedAIModel,
+        aiModelsSettings: sanitizedAiModelsSettings as Record<ModelProvider, AIModelSettings>,
+      },
+    };
+  },
   state: (set, get) => ({
     sidebarCollapsed: false,
     theme: 'light',

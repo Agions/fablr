@@ -2,7 +2,7 @@
  * 剧工 (Fablr) — 控制台仪表盘 (Home Dashboard)
  * 100% 对齐 home_dashboard_ui 设计稿：黑曜石工业级剪辑工作台
  */
-import React, { useEffect, useState, useCallback } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Plus,
@@ -14,9 +14,8 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { withErrorBoundary } from '@/components/common/error-boundary';
-import { listProjects, PROJECTS_CHANGED_EVENT } from '@/core/services/project/project-file-service';
+import { useProjects } from '@/hooks/use-projects';
 import { preloadProjectEditPage } from '@/core/utils/route-preload';
-import { logger } from '@/shared/utils/logging';
 import styles from './index.module.less';
 
 interface HomeProjectItem {
@@ -40,36 +39,17 @@ const DEFAULT_POSTERS = [
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
-  const [projects, setProjects] = useState<HomeProjectItem[]>([]);
+  const { projects: sqliteProjects } = useProjects();
 
-  const loadLocalProjects = useCallback(async () => {
-    try {
-      const list = await listProjects();
-      if (Array.isArray(list) && list.length > 0) {
-        const mapped: HomeProjectItem[] = list.map((p, idx) => ({
-          id: String(p.id),
-          name: typeof p.name === 'string' && p.name ? p.name : `未命名项目 #${idx + 1}`,
-          subtitle: typeof p.description === 'string' && p.description ? p.description : 'AI 影视解说 · 智能拆条',
-          updatedAt: typeof p.updatedAt === 'string' ? p.updatedAt.slice(0, 10) : '2026-08-21',
-          duration: '03:30',
-          status: (p.status === 'completed' ? '完成' : p.status === 'processing' ? '进行中' : '排队中') as '完成' | '进行中' | '排队中',
-          posterBg: DEFAULT_POSTERS[idx % DEFAULT_POSTERS.length],
-        }));
-        setProjects(mapped);
-      } else {
-        setProjects([]);
-      }
-    } catch (e) {
-      logger.warn('加载本地项目列表失败', { e });
-      setProjects([]);
-    }
-  }, []);
-
-  useEffect(() => {
-    void loadLocalProjects();
-    window.addEventListener(PROJECTS_CHANGED_EVENT, loadLocalProjects);
-    return () => window.removeEventListener(PROJECTS_CHANGED_EVENT, loadLocalProjects);
-  }, [loadLocalProjects]);
+  const projects: HomeProjectItem[] = (sqliteProjects || []).map((p, idx) => ({
+    id: p.id,
+    name: p.name || `未命名项目 #${idx + 1}`,
+    subtitle: 'AI 影视解说 · 智能拆条',
+    updatedAt: p.updatedAt ? p.updatedAt.slice(0, 10) : '2026-08-21',
+    duration: '03:30',
+    status: (p.latestJob?.phase === 'rendering' ? '完成' : p.latestJob ? '进行中' : '排队中') as '完成' | '进行中' | '排队中',
+    posterBg: DEFAULT_POSTERS[idx % DEFAULT_POSTERS.length],
+  }));
 
   return (
     <div className={styles.container}>

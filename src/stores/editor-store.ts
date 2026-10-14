@@ -212,7 +212,10 @@ export const useEditorStore = createPersistedStore<EditorStore>({
       setSelection: selection => set(s => ({ selection: { ...s.selection, ...selection } })),
       clearSelection: () => set({ selection: { segmentId: undefined, multipleIds: [] } }),
       setZoom: zoom => set({ zoom: Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, zoom)) }),
-      reset: () => set({ ...initialEditorState, ...initialTimelineState }),
+      reset: () => {
+        trackHistory.clear();
+        set({ ...initialEditorState, ...initialTimelineState });
+      },
 
       setPlayheadMs: ms => set({ playheadMs: Math.max(0, ms) }),
       setTimelineTracks: tracks => {

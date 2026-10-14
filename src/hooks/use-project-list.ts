@@ -1,15 +1,12 @@
-/**
- * 项目列表 Hook
- * 从 Projects/index.tsx 提取的内联逻辑
- */
-
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { logger } from '@/shared/utils/logging';
 import { notify } from '@/shared';
 import {
   listProjects,
-  deleteProject as deleteProjectFile,
+  deleteProject,
   PROJECTS_CHANGED_EVENT,
+  emitProjectsChanged,
+  type ProjectFileData,
 } from '@/core/services/project/project-file-service';
 import type {
   ProjectStatus,
@@ -20,21 +17,21 @@ import type {
 import type { ProjectUIStatus } from '@/shared/types';
 
 export type { ProjectStatus, ProjectUIStatus, ProjectUIStats, ProjectView, ProjectStatusFilter };
+export { PROJECTS_CHANGED_EVENT, emitProjectsChanged };
 
-// 转换函数：将记录转换为 ProjectView
-const asProjectView = (record: Record<string, unknown>): ProjectView => ({
-  id: String(record.id),
-  name: String(record.name || '未命名项目'),
-  description: typeof record.description === 'string' ? record.description : '',
-  status:
-    record.status === 'processing' || record.status === 'completed'
-      ? (record.status as ProjectUIStatus)
-      : 'draft',
-  createdAt: String(record.createdAt || new Date().toISOString()),
-  updatedAt: String(record.updatedAt || record.createdAt || new Date().toISOString()),
-  scripts: Array.isArray(record.scripts) ? record.scripts : [],
-  videos: Array.isArray(record.videos) ? record.videos : [],
-  videoPath: typeof record.videoPath === 'string' ? record.videoPath : '',
+// 转换函数：将数据转换为 ProjectView
+const asProjectView = (p: ProjectFileData): ProjectView => ({
+  id: p.id || '',
+  name: p.name || '未命名项目',
+  description: p.description || '',
+  status: (p.status || 'draft') as ProjectUIStatus,
+  createdAt: p.createdAt || new Date().toISOString(),
+  updatedAt: p.updatedAt || p.createdAt || new Date().toISOString(),
+  scripts: (p.scripts as ProjectView['scripts']) || [],
+  videos:
+    (p.videos as ProjectView['videos']) ||
+    (p.videoPath ? ([{ path: p.videoPath }] as unknown as ProjectView['videos']) : []),
+  videoPath: p.videoPath || '',
 });
 
 // 状态配置 — 所有合法 status 都应有一个显示配置，'failed' 等价于 'draft' 视图色
@@ -135,7 +132,6 @@ export function useProjectList(options: UseProjectListOptions = {}): UseProjectL
       setLoadFailed(false);
       const data = await listProjects();
       const mapped = (Array.isArray(data) ? data : [])
-        .filter(item => typeof item.id === 'string')
         .map(asProjectView);
       setProjects(mapped);
     } catch (error) {
@@ -186,9 +182,10 @@ export function useProjectList(options: UseProjectListOptions = {}): UseProjectL
   const confirmDelete = useCallback(
     async (id: string) => {
       try {
-        const ok = await deleteProjectFile(id);
+        const ok = await deleteProject(id);
         if (!ok) {
           notify.error(null, '删除项目失败');
+          setDeleteConfirmId(null);
           return;
         }
         notify.success('项目已删除');

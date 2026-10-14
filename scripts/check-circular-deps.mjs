@@ -61,29 +61,49 @@ const IMPORT_RE = /(?:^|\s)(?:import\s+(?:[^'"`;]+\s+from\s+)?|export\s+(?:[^'"`
 const graph = new Map(); // file -> Set<imported file (resolved)>
 
 for (const file of allFiles) {
-  const content = readFileSync(file, 'utf8');
+  let content = readFileSync(file, 'utf8');
+  // 移除注释，避免 JSDoc/注释示例中的 import 代码误匹配
+  content = content.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
   const imports = new Set();
 
   for (const m of content.matchAll(IMPORT_RE)) {
     const raw = m[1];
-    // 跳过 node_modules / 路径别名（无法解析）
-    if (raw.startsWith('@/') || raw.startsWith('node:')) continue;
-    if (!raw.startsWith('.')) continue;
+    // 跳过 node_modules / 外部包 / node: 内置模块
+    if (raw.startsWith('node:')) continue;
+    if (!raw.startsWith('.') && !raw.startsWith('@/')) continue;
 
-    // 解析相对路径
-    const dir = dirname(file);
-    let resolved = pathResolve(dir, raw);
-    // 尝试加扩展名
-    if (!extname(resolved)) {
+    let resolved;
+    if (raw.startsWith('@/')) {
+      resolved = pathResolve(ROOT, 'src', raw.slice(2));
+    } else {
+      resolved = pathResolve(dirname(file), raw);
+    }
+
+    // 尝试直接匹配或尝试常见扩展名
+    let target = null;
+    if (existsSync(resolved) && statSync(resolved).isFile()) {
+      target = resolved;
+    } else if (!extname(resolved)) {
       for (const ext of EXTENSIONS) {
-        if (existsSync(resolved + ext)) {
-          resolved = resolved + ext;
+        if (existsSync(resolved + ext) && statSync(resolved + ext).isFile()) {
+          target = resolved + ext;
           break;
         }
       }
+      // 尝试目录的 index 文件
+      if (!target && existsSync(resolved) && statSync(resolved).isDirectory()) {
+        for (const ext of EXTENSIONS) {
+          const indexFile = join(resolved, `index${ext}`);
+          if (existsSync(indexFile) && statSync(indexFile).isFile()) {
+            target = indexFile;
+            break;
+          }
+        }
+      }
     }
-    if (existsSync(resolved) && EXTENSIONS.includes(extname(resolved))) {
-      imports.add(resolved);
+
+    if (target && EXTENSIONS.includes(extname(target)) && target !== file) {
+      imports.add(target);
     }
   }
 

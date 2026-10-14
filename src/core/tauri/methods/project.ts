@@ -81,36 +81,6 @@ export const project = {
     const { DEFAULT_INTENT_CONFIG } = await import('@/core/models/intent');
     return DEFAULT_INTENT_CONFIG;
   },
-
-  // ─── v2 兼容层（项目浏览器专用 · Stage 13 清理） ──────────
-  // 这些方法原本走 fs plugin 文件存储，v3 改为 SQLite 后不再被
-  // commentary workflow 调用。但 pages/home 等项目浏览器仍依赖。
-  // 调用会抛 "v2 removed" — 已知 followup（Stage 13 迁移到 list()/load()）。
-
-  /** @deprecated v2 file-based · use save() instead */
-  async saveProjectFile(_projectId: string, _content: string): Promise<boolean> {
-    throw new Error('v2 saveProjectFile removed in v3 — use project.save()');
-  },
-  /** @deprecated v2 file-based · use load() instead */
-  async loadProjectFile(_projectId: string): Promise<string> {
-    throw new Error('v2 loadProjectFile removed in v3 — use project.load()');
-  },
-  /** @deprecated v2 file-based · use delete() instead */
-  async deleteProjectFile(_projectId: string): Promise<boolean> {
-    throw new Error('v2 deleteProjectFile removed in v3 — use project.delete()');
-  },
-  /** @deprecated v2 file-based · use list() instead */
-  async listProjectFiles(): Promise<Array<{ id: string; [key: string]: unknown }>> {
-    throw new Error('v2 listProjectFiles removed in v3 — use project.list()');
-  },
-  /** @deprecated v2 · 待迁移 */
-  async listAppDataFiles(_directory: string): Promise<string[]> {
-    throw new Error('v2 listAppDataFiles removed in v3');
-  },
-  /** @deprecated v2 · 待迁移 */
-  async checkAppDataDirectory(): Promise<string> {
-    throw new Error('v2 checkAppDataDirectory removed in v3');
-  },
 };
 
 /** Re-export 常用类型 */

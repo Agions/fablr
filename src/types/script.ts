@@ -35,6 +35,16 @@ export interface ScriptSegment {
   type?: 'narration' | 'dialogue' | 'description' | string;
 }
 
+export interface AIScriptDraft {
+  id: string;
+  projectId: string;
+  content: ScriptSegment[];
+  fullText: string;
+  createdAt: string;
+  updatedAt: string;
+  modelUsed?: string;
+}
+
 export interface ScriptMetadata {
   title?: string;
   author?: string;

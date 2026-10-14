@@ -9,27 +9,14 @@
  */
 
 import { getApiKey } from '@/core/services/auth/api-key-service';
-import type { VideoMetadata } from '@/core/video';
-import type { ScriptSegment as CoreScriptSegment } from '@/types';
+import type { VideoMetadata, AIScriptDraft } from '@/types';
 import type { AIModelType } from './ai-model-configs';
 import { invokeAIModel, AIServiceError } from './ai-api-client';
 import { AppError } from '@/core/errors';
 import { buildScriptPrompt, type AnalysisInput, type ScriptGenerationSettings } from './prompt-builder';
 import { parseScriptContent, createScriptDraft } from './script-parser';
 
-// ============================================
-// 类型定义
-// ============================================
-
-export interface AIScriptDraft {
-  id: string;
-  projectId: string;
-  content: CoreScriptSegment[];
-  fullText: string;
-  createdAt: string;
-  updatedAt: string;
-  modelUsed?: string;
-}
+export type { AIScriptDraft };
 
 // ============================================
 // 脚本生成服务

@@ -1,13 +1,13 @@
 /**
  * 剧工 (Fablr) — 在线文档中心数据源
  */
-import doc01 from '../../../docs/01-ARCHITECTURE.md?raw';
-import doc02 from '../../../docs/02-MULTI_AGENT_STUDIO.md?raw';
-import doc03 from '../../../docs/03-JIANYING_AND_DEDUP.md?raw';
-import doc04 from '../../../docs/04-RUST_BACKEND_DDD.md?raw';
-import doc05 from '../../../docs/05-GETTING_STARTED.md?raw';
-import docNaming from '../../../docs/NAMING_AND_MODULARIZATION.md?raw';
-import docOverview from '../../../docs/README.md?raw';
+import doc01 from '../../../docs/architecture/01-system-overview.md?raw';
+import doc02 from '../../../docs/workshops/02-script-studio.md?raw';
+import doc03 from '../../../docs/workshops/04-export-dedup.md?raw';
+import doc04 from '../../../docs/architecture/04-rust-native-backend.md?raw';
+import doc05 from '../../../docs/getting-started/03-quick-start.md?raw';
+import docNaming from '../../../docs/developer/02-testing-and-standards.md?raw';
+import docOverview from '../../../docs/index.md?raw';
 import docManual from '../../../docs/dist-manual/USER_MANUAL.md?raw';
 
 export interface DocItem {

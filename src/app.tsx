@@ -18,6 +18,7 @@ const loadUnderstanding = () => import('./features/understanding/understanding-p
 const loadScriptStudio = () => import('./pages/script-studio/index');
 const loadAssetHub = () => import('./pages/asset-hub/index');
 const loadExportHub = () => import('./pages/export-hub/index');
+const loadDocs = () => import('./pages/docs/index');
 const Home = lazy(loadHome);
 const Projects = lazy(loadProjects);
 const ProjectEdit = lazy(loadProjectEdit);
@@ -26,6 +27,7 @@ const ScriptDetail = lazy(loadScriptDetail);
 const ScriptStudio = lazy(loadScriptStudio);
 const AssetHub = lazy(loadAssetHub);
 const ExportHub = lazy(loadExportHub);
+const Docs = lazy(loadDocs);
 const loadWorkspace = () => import('./pages/workspace/index');
 const WorkspacePage = lazy(loadWorkspace);
 const Settings = lazy(loadSettings);
@@ -90,6 +92,7 @@ const App: React.FC = () => {
                 <Route path="/export-hub" element={<ExportHub />} />
                 <Route path="/export-hub/:projectId" element={<ExportHub />} />
                 <Route path="/settings" element={<Settings />} />
+                <Route path="/docs" element={<Docs />} />
                 <Route path="/understanding" element={<Understanding />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>

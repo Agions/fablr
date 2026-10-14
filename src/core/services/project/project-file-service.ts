@@ -3,13 +3,14 @@
  * All project file operations: save, load, list, delete, app data dir management.
  * Single source of truth for project file operations.
  */
-import { tauri } from '@/core/tauri';
-import { readTextFile, writeTextFile, BaseDirectory, exists, mkdir } from '@tauri-apps/plugin-fs';
+import { readTextFile, writeTextFile, BaseDirectory, exists, mkdir, remove, readDir } from '@tauri-apps/plugin-fs';
 import { normalizeProjectId, buildProjectIdCandidates } from '@/core/utils/project-id';
 import { logger } from '@/shared/utils/logging';
 import { getConfigDir } from '@/core/utils/config-dir';
 import { AppError } from '@/core/errors';
 import { atomicFileDriver } from './atomic-file-driver';
+import { project as sqliteProject } from '@/core/tauri/methods/project';
+import { DEFAULT_INTENT_CONFIG } from '@/core/models/intent';
 
 const errMsg = (err: unknown): string => (err instanceof Error ? err.message : String(err));
 
@@ -57,13 +58,6 @@ const normalizeListedProject = (value: unknown): ProjectFileData | null => {
 
 const ensureAppDataDir = async (): Promise<void> => {
   const appDir = 'fablr';
-  try {
-    const dirPath = await tauri.checkAppDataDirectory();
-    logger.info('Rust目录检查成功', { dirPath });
-    return;
-  } catch (rustError) {
-    logger.warn('Rust目录检查失败，回退到前端检查', { rustError });
-  }
   const dirExists = await exists(appDir, { baseDir: BaseDirectory.AppData }).catch(e => {
     logger.error('检查目录是否存在时出错', { e });
     throw new AppError('APP_DIR_CHECK_FAILED', `检查目录出错: ${errMsg(e)}`, {
@@ -112,15 +106,21 @@ export const saveProjectToFile = async (projectId: string, project: object): Pro
       throw new AppError('APP_PROJECT_SERIALIZE_EMPTY', '项目数据序列化为空', {
         userMessage: '项目数据为空',
       });
-    const projectPath = `fablr/${normalizedProjectId}.json`;
+
+    // 优先同步保存至 SQLite
     try {
-      await tauri.saveProjectFile(normalizedProjectId, projectData);
-      emitProjectsChanged();
-      logger.info('文件写入成功 (通过Rust函数)', { projectPath });
-      return;
-    } catch (rustErr) {
-      logger.warn('通过Rust保存文件失败，尝试使用JS API保存', { rustErr });
+      await sqliteProject.save({
+        id: normalizedProjectId,
+        name: typeof cleanProject.name === 'string' ? cleanProject.name : '未命名项目',
+        intent: (cleanProject.intent as typeof DEFAULT_INTENT_CONFIG) || DEFAULT_INTENT_CONFIG,
+        videoPath: typeof cleanProject.videoPath === 'string' ? cleanProject.videoPath : '',
+        subtitlePath: null,
+      });
+    } catch (e) {
+      logger.warn('SQLite 同步失败:', e);
     }
+
+    const projectPath = `fablr/${normalizedProjectId}.json`;
     await writeTextFile(projectPath, projectData, { baseDir: BaseDirectory.AppData }).catch(
       async () => {
         const configDir = await getConfigDir();
@@ -147,11 +147,21 @@ const loadProjectFromFile = async <T = ProjectFileData>(projectId: string): Prom
   for (const candidateId of candidates) {
     try {
       try {
-        const content = await tauri.loadProjectFile(candidateId);
-        return JSON.parse(content) as T;
-      } catch (rustError) {
-        lastError = rustError;
-        logger.warn(`通过 Rust 加载项目失败(${candidateId})，尝试使用 JS API 兜底:`, rustError);
+        const sqliteData = await sqliteProject.load(candidateId);
+        if (sqliteData) {
+          return {
+            id: sqliteData.id,
+            name: sqliteData.name,
+            videoPath: sqliteData.videoPath,
+            subtitlePath: sqliteData.subtitlePath,
+            intent: sqliteData.intent,
+            createdAt: sqliteData.createdAt,
+            updatedAt: sqliteData.updatedAt,
+            status: sqliteData.latestJob?.phase === 'rendering' ? 'completed' : sqliteData.latestJob ? 'processing' : 'draft',
+          } as unknown as T;
+        }
+      } catch {
+        // ignore
       }
       const projectPath = `fablr/${candidateId}.json`;
       const legacyProjectPath = `story-fab/${candidateId}.json`;
@@ -171,7 +181,7 @@ const loadProjectFromFile = async <T = ProjectFileData>(projectId: string): Prom
       lastError = error;
     }
   }
-  //兼容历史版本：尝试从旧配置目录加载
+  // 兼容历史版本：尝试从旧配置目录加载
   try {
     const configDir = await getConfigDir();
     if (configDir) {
@@ -187,7 +197,7 @@ const loadProjectFromFile = async <T = ProjectFileData>(projectId: string): Prom
             if (!found) continue;
             const content = await readTextFile(legacyPath);
             return JSON.parse(content) as T;
-            } catch (legacyError) {
+          } catch (legacyError) {
             lastError = legacyError;
           }
         }
@@ -221,35 +231,41 @@ export const loadProjectWithRetry = async <T = ProjectFileData>(
 
 export const listProjects = async (): Promise<ProjectFileData[]> => {
   try {
+    // 优先尝试从 SQLite 获取项目列表
     try {
-      const projects = await tauri.listProjectFiles();
-      const normalized = (Array.isArray(projects) ? projects : [])
-        .map(normalizeListedProject)
-        .filter((item): item is ProjectFileData => item !== null);
-      if (normalized.length > 0) {
-        logger.info('[listProjects] Rust 项目列表获取成功', { count: normalized.length });
-        return normalized;
+      const sqliteList = await sqliteProject.list();
+      if (Array.isArray(sqliteList) && sqliteList.length > 0) {
+        return sqliteList.map(p => ({
+          id: p.id,
+          name: p.name,
+          updatedAt: p.updatedAt,
+          createdAt: p.createdAt,
+          videoPath: p.videoPath,
+          status: p.latestJob?.phase === 'rendering' ? 'completed' : p.latestJob ? 'processing' : 'draft',
+        }));
       }
-      logger.warn('[listProjects] Rust 项目列表为空，切换到文件扫描兜底');
-    } catch (rustError) {
-      logger.warn('[listProjects] Rust 获取失败，切换到 JS API 兜底:', rustError);
+    } catch (sqliteErr) {
+      logger.warn('[listProjects] SQLite 列表获取异常，切换到文件扫描:', sqliteErr);
     }
+
     await ensureAppDataDir();
     const appDir = 'fablr';
-    const files = (await tauri.listAppDataFiles(appDir)) as string[];
-    if (!files || !Array.isArray(files) || files.length === 0) return [];
+    const entries = await readDir(appDir, { baseDir: BaseDirectory.AppData }).catch(() => []);
+    const files = (Array.isArray(entries) ? entries : [])
+      .filter(e => e.isFile && e.name?.endsWith('.json'))
+      .map(e => e.name);
+
+    if (files.length === 0) return [];
     const projects = await Promise.all(
-      files
-        .filter(file => file.endsWith('.json'))
-        .map(async file => {
-          try {
-            const projectId = file.replace('.json', '');
-            return await loadProjectFromFile(projectId);
-          } catch (error) {
-            logger.error(`[listProjects] 加载项目 ${file} 失败:`, error);
-            return null;
-          }
-        })
+      files.map(async file => {
+        try {
+          const projectId = file.replace('.json', '');
+          return await loadProjectFromFile(projectId);
+        } catch (error) {
+          logger.error(`[listProjects] 加载项目 ${file} 失败:`, error);
+          return null;
+        }
+      })
     );
     return projects
       .map(normalizeListedProject)
@@ -264,7 +280,13 @@ export const deleteProject = async (projectId: string): Promise<boolean> => {
   try {
     const normalizedProjectId = normalizeProjectId(projectId || '');
     if (!normalizedProjectId) return false;
-    await tauri.deleteProjectFile(normalizedProjectId);
+    try {
+      await sqliteProject.delete(normalizedProjectId);
+    } catch (e) {
+      logger.warn('SQLite 删除异常或未初始化:', e);
+    }
+    const projectPath = `fablr/${normalizedProjectId}.json`;
+    await remove(projectPath, { baseDir: BaseDirectory.AppData }).catch(() => {});
     emitProjectsChanged();
     logger.info('项目删除成功', { projectId });
     return true;

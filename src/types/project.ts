@@ -13,11 +13,8 @@
  */
 export type ProjectStatus = 'draft' | 'processing' | 'completed' | 'failed';
 
-/**
- * `ProjectUIStatus` 现位于 `@/shared/types`（含 `UIStatus = 'draft' | 'processing' | 'completed'`）。
- * 真实项目 UI 视图（如 src/pages/projects/）都从 `@/shared/types` 导入。
- * 历史别名已移除（PR-1.3）。如果需要完整的失败态语义，请使用 {@link ProjectStatus}。
- */
+/** UI 端状态枚举别名（与 ProjectStatus 统一对齐，避免缺少 failed 状态） */
+export type ProjectUIStatus = ProjectStatus;
 
 // ─── 项目模型 ───
 
@@ -141,5 +138,5 @@ export interface DetailProject {
 // Consumer-specific augmentations (kept narrow — only where actually needed)
 
 export interface DetailProjectWithAIScripts extends DetailProject {
-  scripts?: import('@/core/services/ai/script-service').AIScriptDraft[];
+  scripts?: import('./script').AIScriptDraft[];
 }

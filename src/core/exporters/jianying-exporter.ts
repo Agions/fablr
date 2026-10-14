@@ -237,7 +237,16 @@ export async function exportJianYingDraft(
   input: JianYingProjectExportInput,
   defaultFilename?: string
 ): Promise<{ success: boolean; filePath?: string; draft: JianYingDraftContent }> {
-  const draft = jianYingExporter.generateDraftContent(input);
+  let draft: JianYingDraftContent;
+  try {
+    const { invoke, TauriCommand } = await import('@/core/tauri');
+    draft = (await invoke(TauriCommand.EXPORT_JIANYING_DRAFT, {
+      input: input as unknown as Record<string, unknown>,
+    })) as unknown as JianYingDraftContent;
+  } catch {
+    // 降级回退
+    draft = jianYingExporter.generateDraftContent(input);
+  }
   const jsonContent = JSON.stringify(draft, null, 2);
   const safeName = (input.projectName || 'fablr_project').replace(/[/\\?%*:|"<>]/g, '_');
   const targetName = defaultFilename || `${safeName}_draft.json`;

@@ -90,6 +90,7 @@ export type TauriCommandName =
   | 'detect_zcr_bursts'
   | 'detect_smart_segments'
   | 'export_video'
+  | 'export_jianying_draft'
   | 'transcode_with_crop'
   | 'render_autonomous_cut'
   | 'generate_preview'
@@ -229,6 +230,10 @@ type CommandNameToDefs = {
       burnSubtitles?: boolean;
     };
     output: { outputPath: string; duration: number; fileSize: number };
+  };
+  export_jianying_draft: {
+    input: { input: Record<string, unknown> };
+    output: Record<string, unknown>;
   };
   transcode_with_crop: {
     input: {

@@ -32,10 +32,21 @@ export function createHistory<T>(opts: CreateHistoryOptions = {}) {
   const future: T[] = [];
   const maxSize = opts.maxSize ?? 19;
 
+  const clone = (data: T): T => {
+    if (typeof structuredClone === 'function') {
+      try {
+        return structuredClone(data);
+      } catch {
+        // fallback
+      }
+    }
+    return JSON.parse(JSON.stringify(data));
+  };
+
   return {
     /** 把当前快照压入 past 栈（修改前调用） */
     save(snapshot: T) {
-      past.push(snapshot);
+      past.push(clone(snapshot));
       if (past.length > maxSize) {
         past.splice(0, past.length - maxSize);
       }
@@ -50,7 +61,7 @@ export function createHistory<T>(opts: CreateHistoryOptions = {}) {
     undo(currentSnapshot: T): T | undefined {
       if (past.length === 0) return undefined;
       const previous = past.pop()!;
-      future.unshift(currentSnapshot);
+      future.unshift(clone(currentSnapshot));
       return previous;
     },
 
@@ -61,7 +72,7 @@ export function createHistory<T>(opts: CreateHistoryOptions = {}) {
     redo(currentSnapshot: T): T | undefined {
       if (future.length === 0) return undefined;
       const next = future.shift()!;
-      past.push(currentSnapshot);
+      past.push(clone(currentSnapshot));
       return next;
     },
 
