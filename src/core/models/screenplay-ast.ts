@@ -60,6 +60,7 @@ export interface DramaScreenplayIR {
   sceneBeats: ScreenplaySceneBeat[];
   totalEstimatedDurationSec: number;
   generatedAt: string;
+  updatedAt?: string;
   modelVersion?: string;
 }
 

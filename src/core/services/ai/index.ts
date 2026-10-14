@@ -9,3 +9,4 @@ export * from './vision-service';
 export * from './voice-synthesis-service';
 export * from './local-inference-service';
 export * from './hybrid-model-router';
+export * from './agents';
