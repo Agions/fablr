@@ -12,4 +12,10 @@ export { useProjectStore } from './project-store';
 // ── 编辑器运行时状态 (原 workspace-store) ──
 export { useEditorStore } from './editor-store';
 
+// ── 视听剧本与多智能体分镜状态机 (v3) ──
+export { useScreenplayStore } from './screenplay-store';
+
+// ── 混合推理与端侧模型路由状态机 (v3) ──
+export { useModelRouterStore } from './model-router-store';
+
 // 注意：useSettingsStore 已合并至 useAppStore.aiSettings，不再单独导出。

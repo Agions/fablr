@@ -14,6 +14,7 @@ export interface LocalServerHealth {
   version?: string;
   serverType: 'ollama' | 'openai-compatible' | 'offline';
   error?: string;
+  models?: string[];
 }
 
 export interface LocalChatRequest {
@@ -44,6 +45,14 @@ export class LocalInferenceService {
 
   constructor(endpoint = DEFAULT_OLLAMA_ENDPOINT) {
     this.defaultEndpoint = endpoint;
+  }
+
+  setEndpoint(endpoint: string): void {
+    this.defaultEndpoint = endpoint;
+  }
+
+  getEndpoint(): string {
+    return this.defaultEndpoint;
   }
 
   /**
