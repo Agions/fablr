@@ -5,18 +5,18 @@ SPDX-License-Identifier: MIT
 # [DEPRECATED] 剧工 (Fablr) ➔ 现已合并升级为 Dramaxis (剧枢) <img src="public/logo.svg" width="64" height="64" align="right" alt="剧工 Logo" />
 
 > ⚠️ **重大废弃与迁移公告 (DEPRECATION & MIGRATION NOTICE)**  
-> **本项目 Fablr（剧工）已正式停止独立维护，并与 [splicr](https://github.com/Agions/splicr) 完成双核架构与全部功能合并，全面升级为全新一代影视二创与智能解说平台 —— 「Dramaxis (剧枢)」！**  
+> **本项目 Fablr（剧工）已正式停止独立维护，并完成双核架构与全部功能合并，全面升级为全新一代影视二创与智能解说平台 —— 「Dramaxis (剧枢)」！**  
 >  
-> 🔗 **全新官方仓库**：**[https://github.com/Agions/splicr](https://github.com/Agions/splicr)**  
-> 🚀 融合了 Fablr 的「4 大核心创作工坊、本地 Whisper 字幕、SSML 角色音色标记、消重发布矩阵」与 splicr 的「6 大 Rust Native 多智能体协作编导、5 轨毫秒级对齐与剪映草稿深度互通」。  
-> 请所有用户和开发者移步至 [https://github.com/Agions/splicr](https://github.com/Agions/splicr) 获取最新版本与源码！
+> 🔗 **全新官方仓库**：**[https://github.com/Agions/dramaxis](https://github.com/Agions/dramaxis)**  
+> 🚀 融合了 Fablr 的「4 大核心创作工坊、本地 Whisper 字幕、SSML 角色音色标记、消重发布矩阵」与原核心「6 大 Rust Native 多智能体协作编导、5 轨毫秒级对齐与剪映草稿深度互通」。  
+> 请所有用户和开发者移步至 [https://github.com/Agions/dramaxis](https://github.com/Agions/dramaxis) 获取最新版本与源码！
 
 ---
 
 > 🎬 **开源 AI 影视/短剧解说创作工坊 · 本地优先 · 结构化剧本骨架 · 以文剪片 · 剪映草稿协议互通 · 5 级防搬运消重 · 多平台矩阵分发**
 
-[![Deprecated](https://img.shields.io/badge/status-DEPRECATED-red.svg)](https://github.com/Agions/splicr)
-[![Migrated to Dramaxis](https://img.shields.io/badge/migrated%20to-Dramaxis-success?logo=github)](https://github.com/Agions/splicr)
+[![Deprecated](https://img.shields.io/badge/status-DEPRECATED-red.svg)](https://github.com/Agions/dramaxis)
+[![Migrated to Dramaxis](https://img.shields.io/badge/migrated%20to-Dramaxis-success?logo=github)](https://github.com/Agions/dramaxis)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Tauri 2](https://img.shields.io/badge/Tauri-2.x-FFC131?logo=tauri&logoColor=black)](https://tauri.app/)
 [![React 18](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black)](https://react.dev/)
